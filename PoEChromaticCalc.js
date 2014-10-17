@@ -167,7 +167,7 @@ Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
 			Main.gc = (12 + dex) / div;
 			Main.bc = (12 + $int) / div;
 			chance = Main.multinomial(red,green,blue,socks - red - green - blue);
-			probs.push(new Probability(r.description,Utils.floatToPrecisionString(chance * 100,3) + "%",r.cost == null?"null":"" + r.cost,Utils.floatToPrecisionString(r.cost / chance,1),r.level == null?"null":"" + r.level));
+			probs.push(new Probability(r.description,Utils.floatToPrecisionString(chance * 100,3) + "%",r.cost == null?"null":"" + r.cost,Utils.floatToPrecisionString(r.cost / chance,1),Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)),2)));
 		}
 	}
 	return probs;

@@ -173,7 +173,12 @@ class Main {
 				gc = (X + dex) / div;
 				bc = (X + int) / div;
 				chance = multinomial(red, green, blue, socks - red - green - blue);
-				probs.push(new Probability(r.description, Utils.floatToPercent(chance), Std.string(r.cost), Utils.floatToPrecisionString(r.cost / chance, 1), Std.string(r.level))); 
+				//probs.push(new Probability(r.description, Utils.floatToPercent(chance), Std.string(r.cost), Utils.floatToPrecisionString(r.cost / chance, 1), Std.string(r.level)));
+				probs.push(new Probability(r.description,
+					Utils.floatToPercent(chance),
+					Std.string(r.cost),
+					Utils.floatToPrecisionString(r.cost / chance, 1),
+					Utils.floatToPrecisionString(Math.sqrt((1-chance)/(chance*chance)), 2))); 
 			}
 		}
 		
