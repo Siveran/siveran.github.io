@@ -151,11 +151,15 @@ a:visited {
 	color: #994499;
 }
 
+div.results {
+	margin-bottom: 2.5%;
+	margin-top: 2.5%;
+}
 
 div.etc {
 	width: 100%;
 	color: #999999;
-	font-size: 90%;
+	font-size: 80%;
 	text-align: center;
 	position: relative;
 	bottom: 0;

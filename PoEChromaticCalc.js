@@ -104,10 +104,11 @@ Main.updateTable = function(probs) {
 			++i;
 		}
 		row.style.visibility = "visible";
+		row.style.display = "table-row";
 		row = row.nextElementSibling;
 	}
 	while(row != null) {
-		row.style.visibility = "collapse";
+		row.style.display = "none";
 		row = row.nextElementSibling;
 	}
 };

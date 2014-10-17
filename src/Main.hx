@@ -70,6 +70,7 @@ class Main {
 			tr.appendChild(Browser.document.createTableCellElement());
 			tr.appendChild(Browser.document.createTableCellElement());
 			tr.style.visibility = "collapse";
+			//tr.style.display = "none";
 			tr.classList.add("prob");
 			table.appendChild(tr);
 		}
@@ -90,10 +91,12 @@ class Main {
 				++i;
 			}
 			row.style.visibility = "visible";
+			row.style.display = "table-row";
 			row = row.nextElementSibling;
 		}
 		while (row != null) { // Hide remaining rows
-			row.style.visibility = "collapse";
+			//row.style.visibility = "collapse";
+			row.style.display = "none";
 			row = row.nextElementSibling;
 		}
 	}

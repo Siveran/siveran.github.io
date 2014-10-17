@@ -22,4 +22,5 @@ td{border-left:1px #222;border-right:1px #222;margin-bottom:0px;margin-top:0px;p
 button{background-color:#555;color:#EEEEEE;font-size:110%;border:0px;border-radius:3px;padding-left:10px;padding-right:10px;padding-top:5px;padding-bottom:5px;}
 a:link{color:#5555EE;}
 a:visited{color:#994499;}
-div.etc{width:100%;color:#999999;font-size:90%;text-align:center;position:relative;bottom:0;}
+div.results{margin-bottom:2.5%;margin-top:2.5%;}
+div.etc{width:100%;color:#999999;font-size:80%;text-align:center;position:relative;bottom:0;}
