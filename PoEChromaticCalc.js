@@ -1,14 +1,4 @@
 (function () { "use strict";
-var EReg = function() { };
-EReg.__name__ = true;
-EReg.prototype = {
-	match: function(s) {
-		if(this.r.global) this.r.lastIndex = 0;
-		this.r.m = this.r.exec(s);
-		this.r.s = s;
-		return this.r.m != null;
-	}
-};
 var HxOverrides = function() { };
 HxOverrides.__name__ = true;
 HxOverrides.cca = function(s,index) {
@@ -24,21 +14,6 @@ HxOverrides.substr = function(s,pos,len) {
 		if(pos < 0) pos = 0;
 	} else if(len < 0) len = s.length + len - pos;
 	return s.substr(pos,len);
-};
-var JSUtils = function() {
-};
-JSUtils.__name__ = true;
-JSUtils.restrictChars = function(field,e,restrict) {
-	var code = 0;
-	var character;
-	if(e != null) {
-		if(e.keyCode != null) code = e.keyCode; else if(e.which != null) code = e.which;
-		character = String.fromCharCode(code);
-		if(!e.ctrlKey && code != 9 && code != 8 && code != 36 && code != 37 && code != 38 && (code != 39 || code == 39 && character == "'") && code != 40) {
-			if(restrict.match(character)) return true;
-		}
-	}
-	return false;
 };
 var Main = function() { };
 Main.__name__ = true;
