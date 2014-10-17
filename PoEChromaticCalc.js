@@ -46,6 +46,7 @@ Main.main = function() {
 	Main.greenField = window.document.getElementById("green");
 	Main.blueField = window.document.getElementById("blue");
 	Main.table = window.document.getElementById("result");
+	var i = 0;
 	var _g = 0;
 	var _g1 = Main.recipes;
 	while(_g < _g1.length) {
@@ -84,9 +85,16 @@ Main.main = function() {
 			$r = _this5.createElement("td");
 			return $r;
 		}(this)));
-		tr.style.visibility = "collapse";
+		if(i < 4) {
+			var td = tr.firstElementChild;
+			while(td != null) {
+				td.innerHTML = "-";
+				td = td.nextElementSibling;
+			}
+		} else tr.style.display = "none";
 		tr.classList.add("prob");
 		Main.table.appendChild(tr);
+		++i;
 	}
 	window.document.getElementById("calcButton").onclick = Main.calculate;
 };
@@ -103,7 +111,6 @@ Main.updateTable = function(probs) {
 			td = td.nextElementSibling;
 			++i;
 		}
-		row.style.visibility = "visible";
 		row.style.display = "table-row";
 		row = row.nextElementSibling;
 	}

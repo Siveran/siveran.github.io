@@ -62,6 +62,7 @@ class Main {
 		table = cast Browser.document.getElementById("result");
 		
 		// Fill in the table with sufficient blank fields
+		var i:Int = 0;
 		for (r in recipes) {
 			var tr:TableRowElement = Browser.document.createTableRowElement();
 			tr.appendChild(Browser.document.createTableCellElement());
@@ -69,10 +70,19 @@ class Main {
 			tr.appendChild(Browser.document.createTableCellElement());
 			tr.appendChild(Browser.document.createTableCellElement());
 			tr.appendChild(Browser.document.createTableCellElement());
-			tr.style.visibility = "collapse";
-			//tr.style.display = "none";
+			//tr.style.visibility = "collapse";
+			if (i < 4) {
+				var td:Element = tr.firstElementChild;
+				while (td != null) {
+					td.innerHTML = "-";
+					td = td.nextElementSibling;
+				}
+			} else {
+				tr.style.display = "none";
+			}
 			tr.classList.add("prob");
 			table.appendChild(tr);
+			++i;
 		}
 		
 		// Attach an event listener
@@ -90,7 +100,7 @@ class Main {
 				td = td.nextElementSibling;
 				++i;
 			}
-			row.style.visibility = "visible";
+			//row.style.visibility = "visible";
 			row.style.display = "table-row";
 			row = row.nextElementSibling;
 		}
