@@ -31,7 +31,6 @@ hr {
 
 div.core {
 	width: 61.8%;
-	height: 95%;
 	background: #333333;
 	margin-left: 17%;
 	margin-top: 1%;
@@ -153,10 +152,10 @@ a:visited {
 
 
 div.etc {
-	width: 61.8%;
+	width: 100%;
 	color: #999999;
 	font-size: 90%;
 	text-align: center;
-	position: absolute;
+	position: relative;
 	bottom: 0;
 }
