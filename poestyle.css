@@ -1,0 +1,162 @@
+html {
+	height: 100%;
+	width: 100%;
+	color: #F0F0F0;
+	background: #0A0A0A;
+}
+
+body {
+	height: 100%;
+	width: 100%;
+    margin: 0;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+	background: #0A0A0A; /* Old browsers */
+	background: -moz-linear-gradient(top,  #393b3f 0%, #141516 0%, #222326 16%, #0a0b0f 78%, #0a0a0a 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#393b3f), color-stop(0%,#141516), color-stop(16%,#222326), color-stop(78%,#0a0b0f), color-stop(100%,#0a0a0a)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #393b3f 0%,#141516 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #393b3f 0%,#141516 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #393b3f 0%,#141516 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #393b3f 0%,#141516 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#393b3f', endColorstr='#0a0a0a',GradientType=0 ); /* IE6-9 */
+}
+
+h1 {
+	text-align: center;
+}
+
+hr {
+	border-color: #222222;
+}
+
+div.core {
+	width: 61.8%;
+	height: 95%;
+	background: #333333;
+	margin-left: 17%;
+	margin-top: 1%;
+	border-radius: 10px;
+	padding: 30px;
+	padding-top: 15px;
+	font-family: Arial;
+	font-size: 110%;
+}
+
+div.form {
+	width: 100%;
+	margin-bottom: 2%;
+	margin-top: 2%;
+}
+
+.entry {
+	background: #444444;
+	border: #FFFFFF 2px;
+	padding: 2px;
+	margin: 2px;
+	color: #EEEEEE;
+	font-family: Arial;
+	font-size: 110%;
+	width: 60px;
+	text-align: center;
+	border-radius: 3px;
+}
+
+span.rowTitle {
+	width: 30%;
+}
+
+span.rowEntry {
+	width: 60%;
+}
+
+table.result {
+	width: 100%;
+}
+
+table.formTable {
+	width: 50%;
+	margin-left: 25%;
+}
+
+th {
+	width: 20%;
+}
+
+td.rowTitle {
+	width: 30%;
+}
+
+td.rowField {
+	width: 15%;
+}
+
+tr.prob:nth-child(odd) {
+	background: #444444;
+}
+
+tr.prob:nth-child(even) {
+	background: #393939;
+}
+
+th {
+	border-left: 1px #222;
+	border-right: 1px #222;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+td {
+	border-left: 1px #222;
+	border-right: 1px #222;
+	margin-bottom: 0px;
+	margin-top: 0px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	text-align: center;
+}
+
+.red {
+	background-color: #554444;
+}
+
+.green {
+	background-color: #445544;
+}
+
+.blue {
+	background-color: #444455;
+}
+
+button {
+	background-color: #555;
+	color: #EEEEEE;
+	font-size: 110%;
+	border: 0px;
+	border-radius: 3px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+a:link {
+	color: #5555EE;
+}
+
+a:visited {
+	color: #994499;
+}
+
+
+div.etc {
+	width: 61.8%;
+	color: #999999;
+	font-size: 90%;
+	text-align: center;
+	position: absolute;
+	bottom: 0;
+}

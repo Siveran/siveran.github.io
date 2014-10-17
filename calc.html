@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<title>Vorici Chromatic Calculator</title>
+	<meta name="description" content="path of exile vorici chromatic orb crafting calculator master craft" />
+	<link rel="stylesheet" type="text/css" href="poestyle.css"/>
+	<link rel="icon" type="image/png" href="Chromatic_Orb.png"/>
+</head>
+<body>
+	<div class="core">
+		<h1>Vorici Chromatic Calculator</h1>
+		<hr/>
+		<div class="form">
+			<table class="formTable">
+				<tbody>
+					<tr class="formRow socks">
+						<td class="rowTitle">Sockets</td>
+						<td colspan="3" class="rowField">
+							<input id="sockets" class="entry white" placeholder="#"></input>
+						</td>
+					</tr>
+					<tr class="formRow reqs">
+						<td class="rowTitle">Requirements</td>
+						<td class="rowField">
+							<input id="str" class="entry red " placeholder="str"></input>
+						</td>
+						<td class="rowField">
+							<input id="dex" class="entry green " placeholder="dex"></input>
+						</td>
+						<td class="rowField">
+							<input id="int" class="entry blue " placeholder="int"></input>
+						</td>
+						<td class="accept">
+							<button id="calcButton" class="go">Calculate</button>
+						</td>
+					</tr>
+					<tr class="formRow colors">
+						<td class="rowTitle">Desired Colors</td>
+						<td class="rowField">
+							<input id="red" class="entry red" placeholder="R"></input>
+						</td>
+						<td class="rowField">
+							<input id="green" class="entry green" placeholder="G"></input>
+						</td>
+						<td class="rowField">
+							<input id="blue" class="entry blue" placeholder="B"></input>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<hr/>
+		<div class="results">
+			<table class="result" id="result">
+				<tr class="prob">
+					<th>Craft Type</th>
+					<th>Success Chance</th>
+					<th>Cost Per Try</th>
+					<th>Average Cost</th>
+					<th>Vorici Level</th>
+				</tr>
+			</table>
+		</div>
+		<div class="etc">
+		<hr/>
+			Made by Siveran. Last updated Oct 16, 2014 (Path of Exile patch 1.2.3b).
+			<br/>The formula used for color chance comes from <a href="http://shouldichromeit.herokuapp.com/howitworks">here</a>.
+			<br/>PM Edarus in game if you have questions or comments.
+			<br/>CC0 2014
+		</div>
+	</div>
+	<script src="PoEChromaticCalc.js"></script>
+</body>
+</html>
