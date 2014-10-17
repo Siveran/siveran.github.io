@@ -8,7 +8,7 @@ div.form{width:100%;margin-bottom:2%;margin-top:2%;}
 span.rowTitle{width:30%;}
 span.rowEntry{width:60%;}
 table.result{width:100%;}
-table.formTable{width:50%;margin-left:25%;}
+table.formTable{width:50%;margin-left:auto;margin-right:auto;}
 th{width:20%;}
 td.rowTitle{width:30%;}
 td.rowField{width:15%;}
