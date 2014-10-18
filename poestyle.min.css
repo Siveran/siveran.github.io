@@ -9,7 +9,7 @@ span.rowTitle{width:30%;}
 span.rowEntry{width:60%;}
 table.result{width:100%;}
 table.formTable{width:50%;margin-left:auto;margin-right:auto;}
-th{width:20%;}
+th{width:16.67%;}
 td.rowTitle{width:30%;}
 td.rowField{width:15%;}
 tr.prob:nth-child(odd){background:#444444;}

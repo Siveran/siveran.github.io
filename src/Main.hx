@@ -31,7 +31,8 @@ class Main {
 	static function main() : Void {
 		// All the vorici recipes, plus a regular chrome
 		recipes = new Array<Recipe>();
-		recipes.push(new Recipe(0, 0, 0, 1, 0, "Self Craft"));
+		recipes.push(new Recipe(0, 0, 0, 1, 0, "Drop Rate"));
+		recipes.push(new Recipe(0, 0, 0, 1, 0, "Chromatic"));
 		recipes.push(new Recipe(1, 0, 0, 4, 2));
 		recipes.push(new Recipe(0, 1, 0, 4, 2));
 		recipes.push(new Recipe(0, 0, 1, 4, 2));
@@ -65,6 +66,7 @@ class Main {
 		var i:Int = 0;
 		for (r in recipes) {
 			var tr:TableRowElement = Browser.document.createTableRowElement();
+			tr.appendChild(Browser.document.createTableCellElement());
 			tr.appendChild(Browser.document.createTableCellElement());
 			tr.appendChild(Browser.document.createTableCellElement());
 			tr.appendChild(Browser.document.createTableCellElement());
@@ -128,15 +130,15 @@ class Main {
 		// Check validity, display error messages in silly ways
 		if (socks <= 0 || socks > 6) {
 			error = true;
-			probs.push(new Probability("Error:", "Invalid", "number", "of", "sockets."));
+			probs.push(new Probability("Error:", "Invalid", "number", "of", "sockets.", ":("));
 		}
 		if (str < 0 || dex < 0 || int < 0) {
 			error = true;
-			probs.push(new Probability("Error:", "Invalid", "item", "stat", "requirements."));
+			probs.push(new Probability("Error:", "Invalid", "item", "stat", "requirements.", ":("));
 		}
 		if (red < 0 || green < 0 || blue < 0 || red + blue + green == 0 || red > 6 || green > 6 || blue > 6 || red + blue + green > socks) {
 			error = true;
-			probs.push(new Probability("Error:", "Invalid", "desired", "socket", "colors."));
+			probs.push(new Probability("Error:", "Invalid", "desired", "socket", "colors.", ":("));
 		}
 		if (!error) {
 			probs = getProbabilities(str, dex, int, socks, red, green, blue);
@@ -153,7 +155,7 @@ class Main {
 		// Sanity check; only use Vorici crafts that are directly in line with what you want.
 		if (sockets > 6 || dred > 6 || dgreen > 6 || dblue > 6 ||
 			sockets <= 0 || dred < 0 || dgreen < 0 || dblue < 0) {
-			probs.push(new Probability("Sorry,", "that's", "definitely", "not", "happening."));
+			probs.push(new Probability("Sorry,", "that's", "definitely", "not", "happening.", ":I"));
 			return probs;
 		}
 		
@@ -173,11 +175,18 @@ class Main {
 				gc = (X + dex) / div;
 				bc = (X + int) / div;
 				chance = multinomial(red, green, blue, socks - red - green - blue);
+				if (r.description == "Chromatic") {
+					// CHROMATIC BONUS ROUND
+					var cb = calcChromaticBonus(socks, red, green, blue);
+					trace(cb);
+					chance /= 1 - cb;
+				}
 				//probs.push(new Probability(r.description, Utils.floatToPercent(chance), Std.string(r.cost), Utils.floatToPrecisionString(r.cost / chance, 1), Std.string(r.level)));
 				probs.push(new Probability(r.description,
 					Utils.floatToPercent(chance),
-					Std.string(r.cost),
-					Utils.floatToPrecisionString(r.cost / chance, 1),
+					Utils.floatToPrecisionString(1 / chance, 1),
+					r.description == "Drop Rate" ? "-" : Std.string(r.cost),
+					r.description == "Drop Rate" ? "-" : Utils.floatToPrecisionString(r.cost / chance, 1),
 					Utils.floatToPrecisionString(Math.sqrt((1-chance)/(chance*chance)), 2))); 
 			}
 		}
@@ -206,6 +215,22 @@ class Main {
 			// oh i'm the genie
 			return (Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)))
 				* Math.pow(rc, red) * Math.pow(gc, green) * Math.pow(bc, blue);
+		}
+	}
+	
+	// Because chromatic orbs can't get the same result multiple times in a row, we find the average reroll chance.
+	private static function calcChromaticBonus(free:Int, dred:Int, dgreen:Int, dblue:Int, red:Int = 0, green:Int = 0, blue:Int = 0, pos:Int = 1) : Float {
+		if (red >= dred && green >= dgreen && blue >= dblue) {
+			return 0; // We do this because you (hopefully) don't reroll it again if you have the desired colors, so there's no chromatic bonus from successes.
+		} else if (free > 0) {
+			// GENIES TAKE THE WHEEL
+			return (pos <= 1 ? calcChromaticBonus(free - 1, dred, dgreen, dblue, red + 1, green, blue, 1) : 0) +
+				(pos <= 2 ? calcChromaticBonus(free - 1, dred, dgreen, dblue, red, green + 1, blue, 2) : 0) +
+				calcChromaticBonus(free - 1, dred, dgreen, dblue, red, green, blue + 1, 3);
+		} else {
+			// oh i'm the genie
+			return (Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)))
+				* Math.pow(rc, red * 2) * Math.pow(gc, green * 2) * Math.pow(bc, blue * 2);
 		}
 	}
 }

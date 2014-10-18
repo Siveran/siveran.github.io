@@ -19,7 +19,8 @@ var Main = function() { };
 Main.__name__ = true;
 Main.main = function() {
 	Main.recipes = new Array();
-	Main.recipes.push(new Recipe(0,0,0,1,0,"Self Craft"));
+	Main.recipes.push(new Recipe(0,0,0,1,0,"Drop Rate"));
+	Main.recipes.push(new Recipe(0,0,0,1,0,"Chromatic"));
 	Main.recipes.push(new Recipe(1,0,0,4,2));
 	Main.recipes.push(new Recipe(0,1,0,4,2));
 	Main.recipes.push(new Recipe(0,0,1,4,2));
@@ -85,6 +86,12 @@ Main.main = function() {
 			$r = _this5.createElement("td");
 			return $r;
 		}(this)));
+		tr.appendChild((function($this) {
+			var $r;
+			var _this6 = window.document;
+			$r = _this6.createElement("td");
+			return $r;
+		}(this)));
 		if(i < 4) {
 			var td = tr.firstElementChild;
 			while(td != null) {
@@ -132,15 +139,15 @@ Main.calculate = function(d) {
 	var blue = Std.parseInt(Main.blueField.value);
 	if(socks <= 0 || socks > 6) {
 		error = true;
-		probs.push(new Probability("Error:","Invalid","number","of","sockets."));
+		probs.push(new Probability("Error:","Invalid","number","of","sockets.",":("));
 	}
 	if(str < 0 || dex < 0 || $int < 0) {
 		error = true;
-		probs.push(new Probability("Error:","Invalid","item","stat","requirements."));
+		probs.push(new Probability("Error:","Invalid","item","stat","requirements.",":("));
 	}
 	if(red < 0 || green < 0 || blue < 0 || red + blue + green == 0 || red > 6 || green > 6 || blue > 6 || red + blue + green > socks) {
 		error = true;
-		probs.push(new Probability("Error:","Invalid","desired","socket","colors."));
+		probs.push(new Probability("Error:","Invalid","desired","socket","colors.",":("));
 	}
 	if(!error) probs = Main.getProbabilities(str,dex,$int,socks,red,green,blue);
 	Main.updateTable(probs);
@@ -149,7 +156,7 @@ Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
 	var probs = new Array();
 	var div = str + dex + $int + 36;
 	if(sockets > 6 || dred > 6 || dgreen > 6 || dblue > 6 || sockets <= 0 || dred < 0 || dgreen < 0 || dblue < 0) {
-		probs.push(new Probability("Sorry,","that's","definitely","not","happening."));
+		probs.push(new Probability("Sorry,","that's","definitely","not","happening.",":I"));
 		return probs;
 	}
 	var _g = 0;
@@ -167,7 +174,12 @@ Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
 			Main.gc = (12 + dex) / div;
 			Main.bc = (12 + $int) / div;
 			chance = Main.multinomial(red,green,blue,socks - red - green - blue);
-			probs.push(new Probability(r.description,Utils.floatToPrecisionString(chance * 100,3) + "%",r.cost == null?"null":"" + r.cost,Utils.floatToPrecisionString(r.cost / chance,1),Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)),2)));
+			if(r.description == "Chromatic") {
+				var cb = Main.calcChromaticBonus(socks,red,green,blue);
+				console.log(cb);
+				chance /= 1 - cb;
+			}
+			probs.push(new Probability(r.description,Utils.floatToPrecisionString(chance * 100,3) + "%",Utils.floatToPrecisionString(1 / chance,1),r.description == "Drop Rate"?"-":r.cost == null?"null":"" + r.cost,r.description == "Drop Rate"?"-":Utils.floatToPrecisionString(r.cost / chance,1),Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)),2)));
 		}
 	}
 	return probs;
@@ -176,10 +188,18 @@ Main.multinomial = function(red,green,blue,free,pos) {
 	if(pos == null) pos = 1;
 	if(free > 0) return (pos <= 1?Main.multinomial(red + 1,green,blue,free - 1,1):0) + (pos <= 2?Main.multinomial(red,green + 1,blue,free - 1,2):0) + Main.multinomial(red,green,blue + 1,free - 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red) * Math.pow(Main.gc,green) * Math.pow(Main.bc,blue);
 };
+Main.calcChromaticBonus = function(free,dred,dgreen,dblue,red,green,blue,pos) {
+	if(pos == null) pos = 1;
+	if(blue == null) blue = 0;
+	if(green == null) green = 0;
+	if(red == null) red = 0;
+	if(red >= dred && green >= dgreen && blue >= dblue) return 0; else if(free > 0) return (pos <= 1?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red + 1,green,blue,1):0) + (pos <= 2?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green + 1,blue,2):0) + Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green,blue + 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red * 2) * Math.pow(Main.gc,green * 2) * Math.pow(Main.bc,blue * 2);
+};
 Math.__name__ = true;
-var Probability = function(h,p,c,a,v) {
+var Probability = function(h,p,t,c,a,v) {
 	this.how = h;
 	this.prob = p;
+	this.tries = t;
 	this.cost = c;
 	this.avg = a;
 	this.reqVorici = v;
@@ -193,10 +213,12 @@ Probability.prototype = {
 		case 1:
 			return this.prob;
 		case 2:
-			return this.cost;
+			return this.tries;
 		case 3:
-			return this.avg;
+			return this.cost;
 		case 4:
+			return this.avg;
+		case 5:
 			return this.reqVorici;
 		default:
 			return "N/A";
