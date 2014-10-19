@@ -50,7 +50,6 @@ div.form {
 
 .entry {
 	background: #444444;
-	border: #FFFFFF 2px;
 	padding: 2px;
 	margin: 2px;
 	color: #EEEEEE;
@@ -59,6 +58,8 @@ div.form {
 	width: 60px;
 	text-align: center;
 	border-radius: 3px;
+	border: solid 1px;
+	border-color: #555555;
 }
 
 span.rowTitle {
@@ -85,6 +86,7 @@ th {
 
 td.rowTitle {
 	width: 30%;
+	text-align: right;
 }
 
 td.rowField {
@@ -122,26 +124,49 @@ td {
 
 .red {
 	background-color: #554444;
+	border-color: #665555;
 }
 
 .green {
 	background-color: #445544;
+	border-color: #556655;
 }
 
 .blue {
 	background-color: #444455;
+	border-color: #555566;
+}
+
+::-webkit-input-placeholder {
+   opacity: 0.5;
+}
+
+::-moz-placeholder {
+   opacity: 0.5;
+}
+
+:-ms-input-placeholder {  
+   opacity: 0.5;
 }
 
 button {
 	background-color: #555;
 	color: #EEEEEE;
 	font-size: 110%;
-	border: 0px;
+	border: solid 1px #666;
 	border-radius: 3px;
 	padding-left: 10px;
 	padding-right: 10px;
 	padding-top: 5px;
 	padding-bottom: 5px;
+	cursor: pointer;
+	webkit-transition: background-color 300ms ease-out;
+	-moz-transition: background-color 300ms ease-out;
+	transition: background-color 300ms ease-out;
+}
+
+button:hover {
+	background-color: #444;
 }
 
 a:link {

@@ -4,22 +4,26 @@ h1{text-align:center;}
 hr{border-color:#222222;}
 div.core{width:61.8%;background:#333333;margin-left:17%;margin-top:1%;border-radius:10px;border:solid 2px #444444;padding:30px;padding-top:15px;font-family:Arial;font-size:110%;}
 div.form{width:100%;margin-bottom:2%;margin-top:2%;}
-.entry{background:#444444;border:#FFFFFF 2px;padding:2px;margin:2px;color:#EEEEEE;font-family:Arial;font-size:110%;width:60px;text-align:center;border-radius:3px;}
+.entry{background:#444444;padding:2px;margin:2px;color:#EEEEEE;font-family:Arial;font-size:110%;width:60px;text-align:center;border-radius:3px;border:solid 1px;border-color:#555555;}
 span.rowTitle{width:30%;}
 span.rowEntry{width:60%;}
 table.result{width:100%;}
 table.formTable{width:50%;margin-left:auto;margin-right:auto;}
 th{width:16.67%;}
-td.rowTitle{width:30%;}
+td.rowTitle{width:30%;text-align:right;}
 td.rowField{width:15%;}
 tr.prob:nth-child(odd){background:#444444;}
 tr.prob:nth-child(even){background:#393939;}
 th{border-left:1px #222;border-right:1px #222;padding-left:10px;padding-right:10px;padding-top:5px;padding-bottom:5px;}
 td{border-left:1px #222;border-right:1px #222;margin-bottom:0px;margin-top:0px;padding-left:10px;padding-right:10px;padding-top:5px;padding-bottom:5px;text-align:center;}
-.red{background-color:#554444;}
-.green{background-color:#445544;}
-.blue{background-color:#444455;}
-button{background-color:#555;color:#EEEEEE;font-size:110%;border:0px;border-radius:3px;padding-left:10px;padding-right:10px;padding-top:5px;padding-bottom:5px;}
+.red{background-color:#554444;border-color:#665555;}
+.green{background-color:#445544;border-color:#556655;}
+.blue{background-color:#444455;border-color:#555566;}
+::-webkit-input-placeholder{opacity:0.5;}
+::-moz-placeholder{opacity:0.5;}
+:-ms-input-placeholder{opacity:0.5;}
+button{background-color:#555;color:#EEEEEE;font-size:110%;border:solid 1px #666;border-radius:3px;padding-left:10px;padding-right:10px;padding-top:5px;padding-bottom:5px;cursor:pointer;webkit-transition:background-color 300ms ease-out;-moz-transition:background-color 300ms ease-out;transition:background-color 300ms ease-out;}
+button:hover{background-color:#444;}
 a:link{color:#5555EE;}
 a:visited{color:#994499;}
 div.results{margin-bottom:2.5%;margin-top:2.5%;}
