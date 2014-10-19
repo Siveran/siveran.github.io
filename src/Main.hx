@@ -5,8 +5,10 @@ import js.html.Element;
 import js.html.EventListener;
 import js.html.HtmlElement;
 import js.html.Node;
+import js.html.TableCellElement;
 import js.html.TableElement;
 import js.html.TableRowElement;
+import js.html.TableSectionElement;
 import js.html.TextAreaElement;
 import js.Lib;
 
@@ -16,6 +18,7 @@ import js.Lib;
  * @author Siveran
  */
 
+@:expose
 class Main {
 	static inline var X:Int = 12;
 	static var recipes:Array<Recipe>;
@@ -26,7 +29,9 @@ class Main {
 	static var redField:TextAreaElement;
 	static var greenField:TextAreaElement;
 	static var blueField:TextAreaElement;
-	static var table:TableElement;
+	static var table:TableSectionElement;
+	static var tableWhole:TableElement;
+	static var recycle:TableSectionElement;
 	
 	static function main() : Void {
 		// All the vorici recipes, plus a regular chrome
@@ -60,26 +65,24 @@ class Main {
 		redField = cast Browser.document.getElementById("red");
 		greenField = cast Browser.document.getElementById("green");
 		blueField = cast Browser.document.getElementById("blue");
-		table = cast Browser.document.getElementById("result");
+		table = cast Browser.document.getElementById("resultbody");
+		tableWhole = cast Browser.document.getElementById("result");
 		
 		// Fill in the table with sufficient blank fields
 		var i:Int = 0;
+		var j:Int;
 		for (r in recipes) {
 			var tr:TableRowElement = Browser.document.createTableRowElement();
-			tr.appendChild(Browser.document.createTableCellElement());
-			tr.appendChild(Browser.document.createTableCellElement());
-			tr.appendChild(Browser.document.createTableCellElement());
-			tr.appendChild(Browser.document.createTableCellElement());
-			tr.appendChild(Browser.document.createTableCellElement());
-			tr.appendChild(Browser.document.createTableCellElement());
+			var td:TableCellElement;
+			j = 6;
+			while (j > 0) {
+				td = Browser.document.createTableCellElement();
+				td.innerHTML = "-";
+				tr.appendChild(td);
+				--j;
+			}
 			//tr.style.visibility = "collapse";
-			if (i < 4) {
-				var td:Element = tr.firstElementChild;
-				while (td != null) {
-					td.innerHTML = "-";
-					td = td.nextElementSibling;
-				}
-			} else {
+			if (i >= 4) {
 				tr.style.display = "none";
 			}
 			tr.classList.add("prob");
@@ -91,11 +94,43 @@ class Main {
 		Browser.document.getElementById("calcButton").onclick = calculate;
 	}
 	
+	public static function flipTableStripes() : Void {
+		var i:Int = 0;
+		var tr:Element = table.firstElementChild;
+		while (tr != null) {
+			++i;
+			if (tr.firstElementChild.innerHTML != "") {
+				tr = null;
+			} else {
+				tr = tr.nextElementSibling;
+			}
+		}
+		trace(i);
+		tr = table.firstElementChild;
+		while (tr != null) {
+			tr.classList.toggle("reverseStripe", i % 2 == 0);
+			tr = tr.nextElementSibling;
+		}
+	}
+	
 	private static function updateTable(probs:Array<Probability>) : Void {
-		var row:Element = table.firstElementChild.nextElementSibling;
+		var row:Element = table.firstElementChild;
+		
+		// Find the index of the best option
+		var mindex:Int = 0;
+		var min:Float = 0;
+		var i:Int = 0;
+		var j:Int = 0;
+		for (p in probs) {
+			if (p.favg > 0 && (min == 0 || min > p.favg )) {
+				mindex = i;
+				min = p.favg;
+			}
+			++i;
+		}
 		
 		for (p in probs) { // Fill in rows with the probability array
-			var i:Int = 0;
+			i = 0;
 			var td:Element = row.firstElementChild;
 			while (td != null) {
 				td.innerHTML = p.get(i);
@@ -104,13 +139,43 @@ class Main {
 			}
 			//row.style.visibility = "visible";
 			row.style.display = "table-row";
+			row.classList.toggle("best", mindex == j);
+			row.classList.remove("reverseStripe");
 			row = row.nextElementSibling;
+			++j;
 		}
 		while (row != null) { // Hide remaining rows
 			//row.style.visibility = "collapse";
+			var td:Element = row.firstElementChild;
+			while (td != null) {
+				td.innerHTML = "";
+				td = td.nextElementSibling;
+			}
 			row.style.display = "none";
+			row.classList.remove("best");
 			row = row.nextElementSibling;
 		}
+		var th:Element = tableWhole.tHead.firstElementChild.firstElementChild;
+		i = 0;
+		while (th != null) {
+			var s:String = "";
+			switch (i) {
+				case 0: s = "Craft Type";
+				case 1: s = "Success Chance";
+				case 2: s = "Average Attempts<br/><span class=\"tablesubtitle\">(mean)</span>";
+				case 3: s = "Cost per Try<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
+				case 4: s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
+				case 5: s = "Std. Deviation<br/><span class=\"tablesubtitle\">(of attempts)</span>";
+			}
+			th.classList.remove("SortTable_sorted");
+			th.classList.remove("SortTable_sorted_reverse");
+			th.innerHTML = s;
+			th = th.nextElementSibling;
+			++i;
+		}
+		// I don't know why this has to be called twice in order to support reversal.
+		SortTable.makeSortable(tableWhole);
+		SortTable.makeSortable(tableWhole);
 	}
 	
 	public static function calculate(d:Dynamic = null) : Void {
@@ -185,9 +250,10 @@ class Main {
 				probs.push(new Probability(r.description,
 					Utils.floatToPercent(chance),
 					Utils.floatToPrecisionString(1 / chance, 1),
-					r.description == "Drop Rate" ? "-" : Std.string(r.cost),
-					r.description == "Drop Rate" ? "-" : Utils.floatToPrecisionString(r.cost / chance, 1),
-					Utils.floatToPrecisionString(Math.sqrt((1-chance)/(chance*chance)), 2))); 
+					r.description == "Drop Rate" ? "-" : Std.string(r.cost)/* + " <img src=\"chromsmall.png\"\\>"*/,
+					r.description == "Drop Rate" ? "-" : Utils.floatToPrecisionString(r.cost / chance, 1)/* + " <img src=\"chromsmall.png\"\\>"*/,
+					Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)), 2),
+					r.cost/chance)); 
 			}
 		}
 		

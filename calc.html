@@ -52,22 +52,30 @@
 		</div>
 		<hr/>
 		<div class="results">
-			<table class="result" id="result">
-				<tr class="prob">
-					<th>Craft Type</th>
-					<th>Success Chance</th>
-					<th>Average Tries</th>
-					<th>Cost Per Try</th>
-					<th>Average Cost</th>
-					<th>Std. Deviation</th>
-				</tr>
+			<table class="result sortable" id="result">
+				<thead>
+					<tr class="prob">
+						<th>Craft Type</th>
+						<th>Success Chance</th>
+						<th>Average Attempts<br/><span class="tablesubtitle">(mean)</span></th>
+						<th>Cost per Try<br/><span class="tablesubtitle">(in chromatics)</span></th>
+						<th>Average Cost<br/><span class="tablesubtitle">(in chromatics)</span></th>
+						<th>Std. Deviation<br/><span class="tablesubtitle">(of attempts)</span></th>
+					</tr>
+				</thead>
+				<tbody id="resultbody">
+					
+				</tbody>
+				<tbody id="recycle">
+					
+				</tbody>
 			</table>
 		</div>
 		<div class="etc">
 		<hr/>
 			<br/>
 			<span style="font-weight:bold;">Note: Chromatic orbs cannot reroll the same color permutation twice, so the chromatic success chance is always higher than the drop rate.</span>
-			<br/>Made by <a href="http://www.pathofexile.com/account/view-profile/Siveran">Siveran</a>. Last updated Oct 18, 2014 (Path of Exile patch 1.2.3b).
+			<br/>Made by <a href="http://www.pathofexile.com/account/view-profile/Siveran">Siveran</a>. Last updated Oct 19, 2014 (Path of Exile patch 1.2.3b).
 			<br/>Thanks to MantisPrayingMantis and <a href="http://www.reddit.com/r/pathofexile">/r/pathofexile</a> for help and suggestions.
 			<br/>The formula used for color chance comes from MantisPrayingMantis and Lawphill's <a href="http://shouldichromeit.herokuapp.com/howitworks">calculator</a>.
 			<br/>Questions or comments? Post them on <a href="http://www.reddit.com/r/pathofexile/comments/2jhc36/i_made_a_chromatic_calculator_web_app_for_use/">Reddit</a>.
@@ -75,6 +83,7 @@
 			<br/>CC0 2014
 		</div>
 	</div>
+	<script src="SortTable.min.js"></script>
 	<script src="PoEChromaticCalc.js"></script>
 </body>
 </html>

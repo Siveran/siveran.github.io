@@ -1,4 +1,4 @@
-(function () { "use strict";
+(function ($hx_exports) { "use strict";
 var HxOverrides = function() { };
 HxOverrides.__name__ = true;
 HxOverrides.cca = function(s,index) {
@@ -15,7 +15,7 @@ HxOverrides.substr = function(s,pos,len) {
 	} else if(len < 0) len = s.length + len - pos;
 	return s.substr(pos,len);
 };
-var Main = function() { };
+var Main = $hx_exports.Main = function() { };
 Main.__name__ = true;
 Main.main = function() {
 	Main.recipes = new Array();
@@ -46,8 +46,10 @@ Main.main = function() {
 	Main.redField = window.document.getElementById("red");
 	Main.greenField = window.document.getElementById("green");
 	Main.blueField = window.document.getElementById("blue");
-	Main.table = window.document.getElementById("result");
+	Main.table = window.document.getElementById("resultbody");
+	Main.tableWhole = window.document.getElementById("result");
 	var i = 0;
+	var j;
 	var _g = 0;
 	var _g1 = Main.recipes;
 	while(_g < _g1.length) {
@@ -56,75 +58,111 @@ Main.main = function() {
 		var tr;
 		var _this = window.document;
 		tr = _this.createElement("tr");
-		tr.appendChild((function($this) {
-			var $r;
+		var td;
+		j = 6;
+		while(j > 0) {
 			var _this1 = window.document;
-			$r = _this1.createElement("td");
-			return $r;
-		}(this)));
-		tr.appendChild((function($this) {
-			var $r;
-			var _this2 = window.document;
-			$r = _this2.createElement("td");
-			return $r;
-		}(this)));
-		tr.appendChild((function($this) {
-			var $r;
-			var _this3 = window.document;
-			$r = _this3.createElement("td");
-			return $r;
-		}(this)));
-		tr.appendChild((function($this) {
-			var $r;
-			var _this4 = window.document;
-			$r = _this4.createElement("td");
-			return $r;
-		}(this)));
-		tr.appendChild((function($this) {
-			var $r;
-			var _this5 = window.document;
-			$r = _this5.createElement("td");
-			return $r;
-		}(this)));
-		tr.appendChild((function($this) {
-			var $r;
-			var _this6 = window.document;
-			$r = _this6.createElement("td");
-			return $r;
-		}(this)));
-		if(i < 4) {
-			var td = tr.firstElementChild;
-			while(td != null) {
-				td.innerHTML = "-";
-				td = td.nextElementSibling;
-			}
-		} else tr.style.display = "none";
+			td = _this1.createElement("td");
+			td.innerHTML = "-";
+			tr.appendChild(td);
+			--j;
+		}
+		if(i >= 4) tr.style.display = "none";
 		tr.classList.add("prob");
 		Main.table.appendChild(tr);
 		++i;
 	}
 	window.document.getElementById("calcButton").onclick = Main.calculate;
 };
+Main.flipTableStripes = function() {
+	var i = 0;
+	var tr = Main.table.firstElementChild;
+	while(tr != null) {
+		++i;
+		if(tr.firstElementChild.innerHTML != "") tr = null; else tr = tr.nextElementSibling;
+	}
+	console.log(i);
+	tr = Main.table.firstElementChild;
+	while(tr != null) {
+		tr.classList.toggle("reverseStripe",i % 2 == 0);
+		tr = tr.nextElementSibling;
+	}
+};
 Main.updateTable = function(probs) {
-	var row = Main.table.firstElementChild.nextElementSibling;
+	var row = Main.table.firstElementChild;
+	var mindex = 0;
+	var min = 0;
+	var i = 0;
+	var j = 0;
 	var _g = 0;
 	while(_g < probs.length) {
 		var p = probs[_g];
 		++_g;
-		var i = 0;
+		if(p.favg > 0 && (min == 0 || min > p.favg)) {
+			mindex = i;
+			min = p.favg;
+		}
+		++i;
+	}
+	var _g1 = 0;
+	while(_g1 < probs.length) {
+		var p1 = probs[_g1];
+		++_g1;
+		i = 0;
 		var td = row.firstElementChild;
 		while(td != null) {
-			td.innerHTML = p.get(i);
+			td.innerHTML = p1.get(i);
 			td = td.nextElementSibling;
 			++i;
 		}
 		row.style.display = "table-row";
+		row.classList.toggle("best",mindex == j);
+		row.classList.remove("reverseStripe");
 		row = row.nextElementSibling;
+		++j;
 	}
 	while(row != null) {
+		var td1 = row.firstElementChild;
+		while(td1 != null) {
+			td1.innerHTML = "";
+			td1 = td1.nextElementSibling;
+		}
 		row.style.display = "none";
+		row.classList.remove("best");
 		row = row.nextElementSibling;
 	}
+	var th = Main.tableWhole.tHead.firstElementChild.firstElementChild;
+	i = 0;
+	while(th != null) {
+		var s = "";
+		switch(i) {
+		case 0:
+			s = "Craft Type";
+			break;
+		case 1:
+			s = "Success Chance";
+			break;
+		case 2:
+			s = "Average Attempts<br/><span class=\"tablesubtitle\">(mean)</span>";
+			break;
+		case 3:
+			s = "Cost per Try<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
+			break;
+		case 4:
+			s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
+			break;
+		case 5:
+			s = "Std. Deviation<br/><span class=\"tablesubtitle\">(of attempts)</span>";
+			break;
+		}
+		th.classList.remove("SortTable_sorted");
+		th.classList.remove("SortTable_sorted_reverse");
+		th.innerHTML = s;
+		th = th.nextElementSibling;
+		++i;
+	}
+	SortTable.makeSortable(Main.tableWhole);
+	SortTable.makeSortable(Main.tableWhole);
 };
 Main.calculate = function(d) {
 	console.log("Hello!");
@@ -179,7 +217,7 @@ Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
 				console.log(cb);
 				chance /= 1 - cb;
 			}
-			probs.push(new Probability(r.description,Utils.floatToPrecisionString(chance * 100,3) + "%",Utils.floatToPrecisionString(1 / chance,1),r.description == "Drop Rate"?"-":r.cost == null?"null":"" + r.cost,r.description == "Drop Rate"?"-":Utils.floatToPrecisionString(r.cost / chance,1),Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)),2)));
+			probs.push(new Probability(r.description,Utils.floatToPrecisionString(chance * 100,5,false) + "%",Utils.floatToPrecisionString(1 / chance,1,null),r.description == "Drop Rate"?"-":r.cost == null?"null":"" + r.cost,r.description == "Drop Rate"?"-":Utils.floatToPrecisionString(r.cost / chance,1,null),Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)),2,null),r.cost / chance));
 		}
 	}
 	return probs;
@@ -196,13 +234,15 @@ Main.calcChromaticBonus = function(free,dred,dgreen,dblue,red,green,blue,pos) {
 	if(red >= dred && green >= dgreen && blue >= dblue) return 0; else if(free > 0) return (pos <= 1?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red + 1,green,blue,1):0) + (pos <= 2?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green + 1,blue,2):0) + Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green,blue + 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red * 2) * Math.pow(Main.gc,green * 2) * Math.pow(Main.bc,blue * 2);
 };
 Math.__name__ = true;
-var Probability = function(h,p,t,c,a,v) {
+var Probability = function(h,p,t,c,a,v,f) {
+	if(f == null) f = 0;
 	this.how = h;
 	this.prob = p;
 	this.tries = t;
 	this.cost = c;
 	this.avg = a;
 	this.reqVorici = v;
+	this.favg = f;
 };
 Probability.__name__ = true;
 Probability.prototype = {
@@ -515,17 +555,37 @@ Utils.wordWrap = function(text,charsPerLine) {
 Utils.intNoOverflow = function(f) {
 	if(f >= 2147483647.0) return 2147483647; else if(f <= -2147483647.) return -1; else return f | 0;
 };
-Utils.floatToPrecisionString = function(f,precision) {
+Utils.floatToPrecisionString = function(f,precision,commas) {
+	if(commas == null) commas = true;
 	if(precision == null) precision = 5;
+	var prefix = "";
+	if(f < 0) {
+		f *= -1;
+		prefix = "-";
+	}
 	f = f * Math.pow(10,precision);
 	var i = Math.round(f);
+	if(i == 0 && f > 0.00000000001) {
+		i = 1;
+		if(prefix == "-") prefix = ">-"; else prefix = "<";
+	}
 	var s;
 	if(i == null) s = "null"; else s = "" + i;
 	if(s.length <= precision) s = Utils.intAsFixedString(i,precision + 1);
-	return HxOverrides.substr(s,0,s.length - precision) + "." + HxOverrides.substr(s,s.length - precision,null);
+	var result = "";
+	var j = s.length - precision;
+	if(commas) {
+		while(j > 3) {
+			j -= 3;
+			result = "," + HxOverrides.substr(s,j,3) + result;
+		}
+		result = s.substring(0,j) + result + "." + HxOverrides.substr(s,s.length - precision,null);
+	} else result = HxOverrides.substr(s,0,s.length - precision) + "." + HxOverrides.substr(s,s.length - precision,null);
+	return prefix + result;
 };
-Utils.floatToPercent = function(f) {
-	return Utils.floatToPrecisionString(f * 100,3) + "%";
+Utils.floatToPercent = function(f,precision) {
+	if(precision == null) precision = 5;
+	return Utils.floatToPrecisionString(f * 100,precision,false) + "%";
 };
 Utils.mod = function(a,b) {
 	return a - (a / b | 0) * b;
@@ -639,4 +699,4 @@ Array.__name__ = true;
 Main.X = 12;
 Utils.TWOPI = 6.28318530717958647693;
 Main.main();
-})();
+})(typeof window != "undefined" ? window : exports);

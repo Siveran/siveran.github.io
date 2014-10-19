@@ -347,16 +347,41 @@ class Utils {
 	}
 	#end
 	
-	public static inline function floatToPrecisionString(f:Float, precision:Int = 5) : String {
+	public static inline function floatToPrecisionString(f:Float, precision:Int = 5, commas:Bool = true) : String {
+		var prefix:String = "";
+		if (f < 0) {
+			f *= -1;
+			prefix = "-";
+		}
 		f = f * Math.pow(10, precision);
 		var i:Int = Math.round(f);
+		if (i == 0 && f > 0.00000000001) {
+			i = 1;
+			if (prefix == "-") {
+				prefix = ">-";
+			} else {
+				prefix = "<";
+			}
+		}
 		var s:String = Std.string(i);
 		if (s.length <= precision) s = intAsFixedString(i, precision + 1);
-		return s.substr(0, s.length - precision) + "." + s.substr(s.length - precision);
+		
+		var result:String = "";
+		var j:Int = s.length - precision;
+		if (commas) {
+			while (j > 3) {
+				j -= 3;
+				result = "," + s.substr(j, 3) + result;
+			}
+			result = s.substring(0, j) + result + "." + s.substr(s.length - precision);
+		} else {
+			result = s.substr(0, s.length - precision) + "." + s.substr(s.length - precision);
+		}
+		return prefix + result;
 	}
 	
-	public static inline function floatToPercent(f:Float) : String {
-		return floatToPrecisionString(f * 100, 3) + "%"; 
+	public static inline function floatToPercent(f:Float, precision:Int = 5) : String {
+		return floatToPrecisionString(f * 100, precision, false) + "%"; 
 	}
 	
 	public inline static function mod(a:Int, b:Int) : Int {

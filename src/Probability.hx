@@ -11,14 +11,16 @@ class Probability {
 	public var cost:String;
 	public var avg:String;
 	public var reqVorici:String;
+	public var favg:Float;
 	
-	public function new(h:String, p:String, t:String, c:String, a:String, v:String) {
+	public function new(h:String, p:String, t:String, c:String, a:String, v:String, f:Float = 0) {
 		how = h;
 		prob = p;
 		tries = t;
 		cost = c;
 		avg = a;
 		reqVorici = v;
+		favg = f;
 	}
 	
 	public function get(part:Int) : String {
