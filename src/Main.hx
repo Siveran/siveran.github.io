@@ -107,7 +107,6 @@ class Main {
 				tr = tr.nextElementSibling;
 			}
 		}
-		trace(i);
 		tr = table.firstElementChild;
 		while (tr != null) {
 			tr.classList.toggle("reverseStripe", i % 2 == 0);
@@ -181,7 +180,6 @@ class Main {
 	}
 	
 	public static function calculate(d:Dynamic = null) : Void {
-		trace("Hello!");
 		var probs:Array<Probability> = new Array<Probability>();
 		var error:Bool = false;
 		
@@ -245,7 +243,6 @@ class Main {
 				if (r.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
 					var cb = calcChromaticBonus(socks, red, green, blue);
-					trace(cb);
 					chance /= 1 - cb;
 				}
 				//probs.push(new Probability(r.description, Utils.floatToPercent(chance), Std.string(r.cost), Utils.floatToPrecisionString(r.cost / chance, 1), Std.string(r.level)));

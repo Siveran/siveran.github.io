@@ -81,7 +81,6 @@ Main.flipTableStripes = function() {
 		++i;
 		if(tr.firstElementChild.innerHTML != "") tr = null; else tr = tr.nextElementSibling;
 	}
-	console.log(i);
 	tr = Main.table.firstElementChild;
 	while(tr != null) {
 		tr.classList.toggle("reverseStripe",i % 2 == 0);
@@ -165,7 +164,6 @@ Main.updateTable = function(probs) {
 	SortTable.makeSortable(Main.tableWhole);
 };
 Main.calculate = function(d) {
-	console.log("Hello!");
 	var probs = new Array();
 	var error = false;
 	var socks = Std.parseInt(Main.sockField.value);
@@ -214,7 +212,6 @@ Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
 			chance = Main.multinomial(red,green,blue,socks - red - green - blue);
 			if(r.description == "Chromatic") {
 				var cb = Main.calcChromaticBonus(socks,red,green,blue);
-				console.log(cb);
 				chance /= 1 - cb;
 			}
 			probs.push(new Probability(r.description,Utils.floatToPrecisionString(chance * 100,5,false) + "%",Utils.floatToPrecisionString(1 / chance,1,null),r.description == "Drop Rate"?"-":r.cost == null?"null":"" + r.cost,r.description == "Drop Rate"?"-":Utils.floatToPrecisionString(r.cost / chance,1,null),Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)),2,null),r.cost / chance));
