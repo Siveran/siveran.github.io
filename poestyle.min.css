@@ -36,5 +36,5 @@ div.etc{width:100%;color:#999999;font-size:80%;text-align:center;position:relati
 img{padding:0px;margin:0px;margin-bottom:-1px;}
 span.tablesubtitle{font-size:80%;padding-top:0px;margin-top:0px;}
 .best{color:#EEFFEE;border-left:2px solid #666666;border-right:2px solid #666666;}
-table.sortable thead{cursor:pointer;webkit-transition:background-color 300ms ease-out;-moz-transition:background-color 300ms ease-out;transition:background-color 300ms ease-out;}
-table.sortable thead:hover{background-color:#333;}
+table.sortable thead th{cursor:pointer;webkit-transition:background-color 300ms ease-out;-moz-transition:background-color 300ms ease-out;transition:background-color 300ms ease-out;}
+table.sortable thead th:hover{background-color:#3F3F3F;}

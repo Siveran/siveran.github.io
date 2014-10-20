@@ -63,7 +63,7 @@ Main.main = function() {
 		while(j > 0) {
 			var _this1 = window.document;
 			td = _this1.createElement("td");
-			td.innerHTML = "-";
+			if(i < 4) td.innerHTML = "-";
 			tr.appendChild(td);
 			--j;
 		}

@@ -230,13 +230,13 @@ span.tablesubtitle {
 	border-right: 2px solid #666666;
 }
 
-table.sortable thead {
+table.sortable thead th {
     cursor: pointer;
 	webkit-transition: background-color 300ms ease-out;
 	-moz-transition: background-color 300ms ease-out;
 	transition: background-color 300ms ease-out;
 }
 
-table.sortable thead:hover {
-	background-color: #333;
+table.sortable thead th:hover {
+	background-color: #3F3F3F;
 }

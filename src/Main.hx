@@ -77,7 +77,9 @@ class Main {
 			j = 6;
 			while (j > 0) {
 				td = Browser.document.createTableCellElement();
-				td.innerHTML = "-";
+				if (i < 4) {
+					td.innerHTML = "-";
+				}
 				tr.appendChild(td);
 				--j;
 			}
