@@ -228,7 +228,7 @@ Main.calcChromaticBonus = function(free,dred,dgreen,dblue,red,green,blue,pos) {
 	if(blue == null) blue = 0;
 	if(green == null) green = 0;
 	if(red == null) red = 0;
-	if(red >= dred && green >= dgreen && blue >= dblue && free == 0) return 0; else if(free > 0) return (pos <= 1?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red + 1,green,blue,1):0) + (pos <= 2?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green + 1,blue,2):0) + Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green,blue + 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red * 2) * Math.pow(Main.gc,green * 2) * Math.pow(Main.bc,blue * 2);
+	if(red >= dred && green >= dgreen && blue >= dblue) return 0; else if(free > 0) return (pos <= 1?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red + 1,green,blue,1):0) + (pos <= 2?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green + 1,blue,2):0) + Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green,blue + 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red * 2) * Math.pow(Main.gc,green * 2) * Math.pow(Main.bc,blue * 2);
 };
 Math.__name__ = true;
 var Probability = function(h,p,t,c,a,v,f) {
