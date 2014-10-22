@@ -190,7 +190,7 @@ Main.calculate = function(d) {
 };
 Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
 	var probs = new Array();
-	var div = str + dex + $int + 36;
+	var div = str + dex + $int + 3 * Main.X;
 	if(sockets > 6 || dred > 6 || dgreen > 6 || dblue > 6 || sockets <= 0 || dred < 0 || dgreen < 0 || dblue < 0) {
 		probs.push(new Probability("Sorry,","that's","definitely","not","happening.",":I"));
 		return probs;
@@ -206,9 +206,9 @@ Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
 			var blue = dblue - r.blue;
 			var socks = sockets - (r.red + r.green + r.blue);
 			var chance;
-			Main.rc = (12 + str) / div;
-			Main.gc = (12 + dex) / div;
-			Main.bc = (12 + $int) / div;
+			Main.rc = (Main.X + str) / div;
+			Main.gc = (Main.X + dex) / div;
+			Main.bc = (Main.X + $int) / div;
 			chance = Main.multinomial(red,green,blue,socks - red - green - blue);
 			if(r.description == "Chromatic") {
 				var cb = Main.calcChromaticBonus(socks,red,green,blue);
@@ -228,7 +228,7 @@ Main.calcChromaticBonus = function(free,dred,dgreen,dblue,red,green,blue,pos) {
 	if(blue == null) blue = 0;
 	if(green == null) green = 0;
 	if(red == null) red = 0;
-	if(red >= dred && green >= dgreen && blue >= dblue) return 0; else if(free > 0) return (pos <= 1?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red + 1,green,blue,1):0) + (pos <= 2?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green + 1,blue,2):0) + Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green,blue + 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red * 2) * Math.pow(Main.gc,green * 2) * Math.pow(Main.bc,blue * 2);
+	if(red >= dred && green >= dgreen && blue >= dblue && free == 0) return 0; else if(free > 0) return (pos <= 1?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red + 1,green,blue,1):0) + (pos <= 2?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green + 1,blue,2):0) + Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green,blue + 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red * 2) * Math.pow(Main.gc,green * 2) * Math.pow(Main.bc,blue * 2);
 };
 Math.__name__ = true;
 var Probability = function(h,p,t,c,a,v,f) {

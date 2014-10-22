@@ -20,7 +20,7 @@ import js.Lib;
 
 @:expose
 class Main {
-	static inline var X:Int = 12;
+	static var X:Int = 12;
 	static var recipes:Array<Recipe>;
 	static var sockField:TextAreaElement;
 	static var strField:TextAreaElement;
@@ -285,7 +285,7 @@ class Main {
 	
 	// Because chromatic orbs can't get the same result multiple times in a row, we find the average reroll chance.
 	private static function calcChromaticBonus(free:Int, dred:Int, dgreen:Int, dblue:Int, red:Int = 0, green:Int = 0, blue:Int = 0, pos:Int = 1) : Float {
-		if (red >= dred && green >= dgreen && blue >= dblue) {
+		if (red >= dred && green >= dgreen && blue >= dblue && free == 0) {
 			return 0; // We do this because you (hopefully) don't reroll it again if you have the desired colors, so there's no chromatic bonus from successes.
 		} else if (free > 0) {
 			// GENIES TAKE THE WHEEL
