@@ -27,16 +27,16 @@ h1 {
 }
 
 hr {
-	border-color: #222222;
+	border-color: #171717;
 }
 
 div.core {
 	width: 61.8%;
-	background: #333333;
+	background: #222324;
 	margin-left: 17%;
 	margin-top: 1%;
 	border-radius: 10px;
-	border: solid 2px #444444;
+	border: solid 2px #333;
 	padding: 30px;
 	padding-top: 15px;
 	font-family: Arial;
@@ -65,6 +65,7 @@ div.form {
 
 span.rowTitle {
 	width: 30%;
+	padding-right: 2px;
 }
 
 span.rowEntry {
@@ -86,7 +87,7 @@ th {
 }
 
 td.rowTitle {
-	width: 30%;
+	width: 27.5%;
 	text-align: right;
 }
 
@@ -95,31 +96,31 @@ td.rowField {
 }
 
 tr.prob:nth-child(even) {
-	background: #444444;
+	background: #333333;
 }
 
 tr.prob:nth-child(odd) {
-	background: #393939;
+	background: #292929;
 }
 
 tr.reverseStripe:nth-child(odd) {
-	background: #444444;
+	background: #333333;
 }
 
 tr.reverseStripe:nth-child(even) {
-	background: #393939;
+	background: #292929;
 }
 
 tr.best:nth-child(even) {
-	background: #404C40;
+	background: #303C30;
 }
 
 tr.best:nth-child(odd) {
-	background: #3A493A;
+	background: #2A392A;
 }
 
 thead tr.prob:nth-child(odd) {
-	background: #444444;
+	background: #333333;
 }
 
 th {
@@ -132,8 +133,8 @@ th {
 }
 
 td {
-	border-left: 1px #222;
-	border-right: 1px #222;
+	border-left: 0px #222;
+	border-right: 0px #222;
 	margin-bottom: 0px;
 	margin-top: 0px;
 	padding-left: 10px;
@@ -176,8 +177,8 @@ button {
 	font-size: 110%;
 	border: solid 1px #666;
 	border-radius: 3px;
-	padding-left: 10px;
-	padding-right: 10px;
+	padding-left: 12px;
+	padding-right: 12px;
 	padding-top: 5px;
 	padding-bottom: 5px;
 	cursor: pointer;
@@ -239,4 +240,17 @@ table.sortable thead th {
 
 table.sortable thead th:hover {
 	background-color: #3F3F3F;
+}
+
+td.long {
+	width: 22.5%;
+	text-align: center;
+}
+
+td.squish {
+	width: 0%;
+}
+
+td.accept {
+	width: 27.5%;
 }

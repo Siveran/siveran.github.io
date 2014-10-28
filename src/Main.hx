@@ -20,9 +20,10 @@ import js.Lib;
 
 @:expose
 class Main {
-	static var X:Int = 12;
+	static var X:Int = 15;
 	static var recipes:Array<Recipe>;
 	static var sockField:TextAreaElement;
+	static var ilevelField:TextAreaElement;
 	static var strField:TextAreaElement;
 	static var dexField:TextAreaElement;
 	static var intField:TextAreaElement;
@@ -59,6 +60,7 @@ class Main {
 		
 		// All the input fields and the result table that the script touches
 		sockField = cast Browser.document.getElementById("sockets");
+		ilevelField = cast Browser.document.getElementById("ilevel");
 		strField = cast Browser.document.getElementById("str");
 		dexField = cast Browser.document.getElementById("dex");
 		intField = cast Browser.document.getElementById("int");
@@ -185,6 +187,7 @@ class Main {
 		
 		// Read all the fields
 		var socks:Int = Std.parseInt(sockField.value);
+		var ilvl:Int = Std.parseInt(ilevelField.value);
 		var str:Int = Std.parseInt(strField.value);
 		var dex:Int = Std.parseInt(dexField.value);
 		var int:Int = Std.parseInt(intField.value);
@@ -192,7 +195,13 @@ class Main {
 		var green:Int = Std.parseInt(greenField.value);
 		var blue:Int = Std.parseInt(blueField.value);
 		
+		X = Std.int(7 + ilvl / 7);
+		
 		// Check validity, display error messages in silly ways
+		if (ilvl < 1 || ilvl > 100) {
+			error = true;
+			probs.push(new Probability("Error:", "Invalid", "item", "level.", "", ":("));
+		}
 		if (socks <= 0 || socks > 6) {
 			error = true;
 			probs.push(new Probability("Error:", "Invalid", "number", "of", "sockets.", ":("));

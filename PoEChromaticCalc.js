@@ -40,6 +40,7 @@ Main.main = function() {
 	Main.recipes.push(new Recipe(1,0,2,100,7));
 	Main.recipes.push(new Recipe(0,1,2,100,7));
 	Main.sockField = window.document.getElementById("sockets");
+	Main.ilevelField = window.document.getElementById("ilevel");
 	Main.strField = window.document.getElementById("str");
 	Main.dexField = window.document.getElementById("dex");
 	Main.intField = window.document.getElementById("int");
@@ -167,12 +168,18 @@ Main.calculate = function(d) {
 	var probs = new Array();
 	var error = false;
 	var socks = Std.parseInt(Main.sockField.value);
+	var ilvl = Std.parseInt(Main.ilevelField.value);
 	var str = Std.parseInt(Main.strField.value);
 	var dex = Std.parseInt(Main.dexField.value);
 	var $int = Std.parseInt(Main.intField.value);
 	var red = Std.parseInt(Main.redField.value);
 	var green = Std.parseInt(Main.greenField.value);
 	var blue = Std.parseInt(Main.blueField.value);
+	Main.X = 7 + ilvl / 7 | 0;
+	if(ilvl < 1 || ilvl > 100) {
+		error = true;
+		probs.push(new Probability("Error:","Invalid","item","level.","",":("));
+	}
 	if(socks <= 0 || socks > 6) {
 		error = true;
 		probs.push(new Probability("Error:","Invalid","number","of","sockets.",":("));
@@ -693,7 +700,7 @@ Math.isNaN = function(i1) {
 };
 String.__name__ = true;
 Array.__name__ = true;
-Main.X = 12;
+Main.X = 15;
 Utils.TWOPI = 6.28318530717958647693;
 Main.main();
 })(typeof window != "undefined" ? window : exports);
