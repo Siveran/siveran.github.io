@@ -116,16 +116,15 @@ function toCSV(delim) {
 }
 
 function munch() {
-	var tb = document.body.children[3].children[0].children[0];
-	var rows = tb.children;
+	var eles = document.getElementsByClassName("content_p");
 	var req;
 	var color;
 	var i;
 	var sockets;
 	items = [];
-	for (i = 0; i < rows.length; i++) {
-		req = parseReqs(rows[i].children[5].innerHTML);
-		color = parseColors(rows[i].children[5].innerHTML);
+	for (i = 0; i < eles.length; i++) {
+		req = parseReqs(eles[i].innerHTML);
+		color = parseColors(eles[i].innerHTML);
 		if (req && color) items.push(new Item(req, color));
 	}
 	
