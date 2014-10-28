@@ -1,8 +1,9 @@
-function Reqs(strR, dexR, intR, ilevel) {
+function Reqs(strR, dexR, intR, ilevel, baseitem) {
 	this.strR = strR;
 	this.dexR = dexR;
 	this.intR = intR;
 	this.ilevel = ilevel;
+	this.baseitem = baseitem;
 }
 
 function Colors(R, G, B) {
@@ -22,10 +23,14 @@ function parseReqs(text) {
 	var dexR = 0;
 	var intR = 0;
 	var ilevel = 0;
+	var baseitem = "N/A";
 	var s;
 	var i;
 	for (i in spl) {
 		s = spl[i];
+		if (i == 1) {
+			baseitem = s.substr(0,s.length - 1);
+		}
 		if (s.substr(0,3) == "Str") {
 			strR = parseInt(s.match(/[0-9]+/g), 10);
 		}
@@ -43,7 +48,7 @@ function parseReqs(text) {
 		//console.log(strR + " " + dexR + " " + intR + " " + ilevel + " " + items.length);
 		return false;
 	}
-	return new Reqs(strR, dexR, intR, ilevel);
+	return new Reqs(strR, dexR, intR, ilevel, baseitem);
 }
 
 function parseColors(text) {
@@ -72,12 +77,12 @@ function parseColors(text) {
 var items;
 function toCSV(delim) {
 	var it;
-	var csv = "iLevel\tSTR\tDEX\tINT\tR\tG\tB\n";
+	var csv = "Base\tiLevel\tSTR\tDEX\tINT\tR\tG\tB\n";
 	//console.log("iLevel,STR,DEX,INT,R,G,B");
 	for (i in items) {
 		it = items[i];
 		//console.log(it.req.ilevel + delim + it.req.strR + delim + it.req.dexR + delim + it.req.intR + delim + it.color.R + delim + it.color.G + delim + it.color.B);
-		csv += it.req.ilevel + delim + it.req.strR + delim + it.req.dexR + delim + it.req.intR + delim + it.color.R + delim + it.color.G + delim + it.color.B + "\n";
+		csv += it.req.baseitem + delim + it.req.ilevel + delim + it.req.strR + delim + it.req.dexR + delim + it.req.intR + delim + it.color.R + delim + it.color.G + delim + it.color.B + "\n";
 	}
 	console.log(csv);
 	// Ugh this is messy, I'll come back and make things prettier later.
