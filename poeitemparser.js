@@ -80,7 +80,26 @@ function toCSV(delim) {
 		csv += it.req.ilevel + delim + it.req.strR + delim + it.req.dexR + delim + it.req.intR + delim + it.color.R + delim + it.color.G + delim + it.color.B + "\n";
 	}
 	console.log(csv);
-	window.prompt("Copy to clipboard: Ctrl+C, Enter", csv);
+	// Ugh this is messy, I'll come back and make things prettier later.
+	var title = document.createElement("h3");
+	title.appendChild(document.createTextNode("Copy This"));
+	title.style.textAlign = "center";
+	title.style.fontFamily = "Sans-serif, Arial"
+	var ta = document.createElement("textarea");
+	ta.appendChild(document.createTextNode(csv));
+	var d = document.createElement("div");
+	d.appendChild(title);
+	d.appendChild(ta);
+	d.style.width = "100%";
+	d.style.position = "fixed";
+	d.style.top = 0;
+	ta.style.marginLeft = "30%";
+	ta.style.marginRight = "30%";
+	ta.style.width = "40%";
+	ta.style.height = "700px";
+	//ta.style.boxShadow = "box-shadow: 10px 10px 5px #888888";
+	ta.select();
+	document.children[0].children[1].appendChild(d);
 }
 
 function munch() {
