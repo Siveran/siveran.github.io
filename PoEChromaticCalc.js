@@ -175,7 +175,7 @@ Main.calculate = function(d) {
 	var red = Std.parseInt(Main.redField.value);
 	var green = Std.parseInt(Main.greenField.value);
 	var blue = Std.parseInt(Main.blueField.value);
-	Main.X = 7 + ilvl / 7 | 0;
+	Main.X = 2 * Math.sqrt(ilvl);
 	if(ilvl < 1 || ilvl > 100) {
 		error = true;
 		probs.push(new Probability("Error:","Invalid","item","level.","",":("));

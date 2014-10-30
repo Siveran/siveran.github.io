@@ -20,7 +20,7 @@ import js.Lib;
 
 @:expose
 class Main {
-	static var X:Int = 15;
+	static var X:Float = 15;
 	static var recipes:Array<Recipe>;
 	static var sockField:TextAreaElement;
 	static var ilevelField:TextAreaElement;
@@ -195,7 +195,7 @@ class Main {
 		var green:Int = Std.parseInt(greenField.value);
 		var blue:Int = Std.parseInt(blueField.value);
 		
-		X = Std.int(7 + ilvl / 7);
+		X = 2*Math.sqrt(ilvl);
 		
 		// Check validity, display error messages in silly ways
 		if (ilvl < 1 || ilvl > 100) {
@@ -224,7 +224,7 @@ class Main {
 	
 	private static function getProbabilities(str:Int, dex:Int, int:Int, sockets:Int, dred:Int, dgreen:Int, dblue:Int) : Array<Probability> {
 		var probs = new Array<Probability>();
-		var div:Int = str + dex + int + 3 * X;
+		var div:Float = str + dex + int + 3 * X;
 		
 		// Sanity check; only use Vorici crafts that are directly in line with what you want.
 		if (sockets > 6 || dred > 6 || dgreen > 6 || dblue > 6 ||
