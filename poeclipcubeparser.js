@@ -52,7 +52,7 @@ function parseReqs(text) {
 			ilevel = parseInt(s.match(/[0-9]+/g), 10);
 		}
 	}
-	if (!(strR >= 0 && dexR >= 0 && intR >= 0 && ilevel >= 10)) {
+	if (!(strR >= 0 && dexR >= 0 && intR >= 0 && ilevel >= 0)) {
 		//console.log(strR + " " + dexR + " " + intR + " " + ilevel + " " + items.length);
 		return false;
 	}

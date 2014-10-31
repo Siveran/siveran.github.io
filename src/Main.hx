@@ -195,7 +195,7 @@ class Main {
 		var green:Int = Std.parseInt(greenField.value);
 		var blue:Int = Std.parseInt(blueField.value);
 		
-		X = 2*Math.sqrt(ilvl);
+		X = 7 + ilvl / 7;
 		
 		// Check validity, display error messages in silly ways
 		if (ilvl < 1 || ilvl > 100) {
