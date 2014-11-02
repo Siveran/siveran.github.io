@@ -20,10 +20,9 @@ import js.Lib;
 
 @:expose
 class Main {
-	static var X:Float = 15;
+	static var X:Float = 22;
 	static var recipes:Array<Recipe>;
 	static var sockField:TextAreaElement;
-	static var ilevelField:TextAreaElement;
 	static var strField:TextAreaElement;
 	static var dexField:TextAreaElement;
 	static var intField:TextAreaElement;
@@ -60,7 +59,6 @@ class Main {
 		
 		// All the input fields and the result table that the script touches
 		sockField = cast Browser.document.getElementById("sockets");
-		ilevelField = cast Browser.document.getElementById("ilevel");
 		strField = cast Browser.document.getElementById("str");
 		dexField = cast Browser.document.getElementById("dex");
 		intField = cast Browser.document.getElementById("int");
@@ -187,7 +185,6 @@ class Main {
 		
 		// Read all the fields
 		var socks:Int = Std.parseInt(sockField.value);
-		var ilvl:Int = Std.parseInt(ilevelField.value);
 		var str:Int = Std.parseInt(strField.value);
 		var dex:Int = Std.parseInt(dexField.value);
 		var int:Int = Std.parseInt(intField.value);
@@ -195,13 +192,14 @@ class Main {
 		var green:Int = Std.parseInt(greenField.value);
 		var blue:Int = Std.parseInt(blueField.value);
 		
-		X = 7 + ilvl / 7;
+		if (str == null) str = 0;
+		if (dex == null) dex = 0;
+		if (int == null) int = 0;
+		if (str > 0 && dex == 0 && int == 0) str += 32;
+		if (str == 0 && dex > 0 && int == 0) dex += 32;
+		if (str == 0 && dex == 0 && int > 0) int += 32;
 		
 		// Check validity, display error messages in silly ways
-		if (ilvl < 1 || ilvl > 100) {
-			error = true;
-			probs.push(new Probability("Error:", "Invalid", "item", "level.", "", ":("));
-		}
 		if (socks <= 0 || socks > 6) {
 			error = true;
 			probs.push(new Probability("Error:", "Invalid", "number", "of", "sockets.", ":("));
@@ -245,6 +243,7 @@ class Main {
 				
 				var chance:Float;
 				// BRUTE FORCE
+				trace(str, dex, int);
 				rc = (X + str) / div;
 				gc = (X + dex) / div;
 				bc = (X + int) / div;

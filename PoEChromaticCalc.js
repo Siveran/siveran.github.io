@@ -40,7 +40,6 @@ Main.main = function() {
 	Main.recipes.push(new Recipe(1,0,2,100,7));
 	Main.recipes.push(new Recipe(0,1,2,100,7));
 	Main.sockField = window.document.getElementById("sockets");
-	Main.ilevelField = window.document.getElementById("ilevel");
 	Main.strField = window.document.getElementById("str");
 	Main.dexField = window.document.getElementById("dex");
 	Main.intField = window.document.getElementById("int");
@@ -168,18 +167,18 @@ Main.calculate = function(d) {
 	var probs = new Array();
 	var error = false;
 	var socks = Std.parseInt(Main.sockField.value);
-	var ilvl = Std.parseInt(Main.ilevelField.value);
 	var str = Std.parseInt(Main.strField.value);
 	var dex = Std.parseInt(Main.dexField.value);
 	var $int = Std.parseInt(Main.intField.value);
 	var red = Std.parseInt(Main.redField.value);
 	var green = Std.parseInt(Main.greenField.value);
 	var blue = Std.parseInt(Main.blueField.value);
-	Main.X = 7 + ilvl / 7;
-	if(ilvl < 1 || ilvl > 100) {
-		error = true;
-		probs.push(new Probability("Error:","Invalid","item","level.","",":("));
-	}
+	if(str == null) str = 0;
+	if(dex == null) dex = 0;
+	if($int == null) $int = 0;
+	if(str > 0 && dex == 0 && $int == 0) str += 32;
+	if(str == 0 && dex > 0 && $int == 0) dex += 32;
+	if(str == 0 && dex == 0 && $int > 0) $int += 32;
 	if(socks <= 0 || socks > 6) {
 		error = true;
 		probs.push(new Probability("Error:","Invalid","number","of","sockets.",":("));
@@ -213,6 +212,7 @@ Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
 			var blue = dblue - r.blue;
 			var socks = sockets - (r.red + r.green + r.blue);
 			var chance;
+			haxe.Log.trace(str,{ fileName : "Main.hx", lineNumber : 246, className : "Main", methodName : "getProbabilities", customParams : [dex,$int]});
 			Main.rc = (Main.X + str) / div;
 			Main.gc = (Main.X + dex) / div;
 			Main.bc = (Main.X + $int) / div;
@@ -619,9 +619,34 @@ Utils.factorial = function(x) {
 	}
 	return r * sign;
 };
+var haxe = {};
+haxe.Log = function() { };
+haxe.Log.__name__ = true;
+haxe.Log.trace = function(v,infos) {
+	js.Boot.__trace(v,infos);
+};
 var js = {};
 js.Boot = function() { };
 js.Boot.__name__ = true;
+js.Boot.__unhtml = function(s) {
+	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+};
+js.Boot.__trace = function(v,i) {
+	var msg;
+	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
+	msg += js.Boot.__string_rec(v,"");
+	if(i != null && i.customParams != null) {
+		var _g = 0;
+		var _g1 = i.customParams;
+		while(_g < _g1.length) {
+			var v1 = _g1[_g];
+			++_g;
+			msg += "," + js.Boot.__string_rec(v1,"");
+		}
+	}
+	var d;
+	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js.Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
+};
 js.Boot.__string_rec = function(o,s) {
 	if(o == null) return "null";
 	if(s.length >= 5) return "<...>";
@@ -700,7 +725,7 @@ Math.isNaN = function(i1) {
 };
 String.__name__ = true;
 Array.__name__ = true;
-Main.X = 15;
+Main.X = 22;
 Utils.TWOPI = 6.28318530717958647693;
 Main.main();
 })(typeof window != "undefined" ? window : exports);
