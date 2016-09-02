@@ -47,9 +47,9 @@ class Main {
 		recipes.push(new Recipe(0, 1, 1, 15, 4));
 		recipes.push(new Recipe(1, 0, 1, 15, 4));
 		recipes.push(new Recipe(1, 1, 0, 15, 4));
-		recipes.push(new Recipe(3, 0, 0, 285, 6));
-		recipes.push(new Recipe(0, 3, 0, 285, 6));
-		recipes.push(new Recipe(0, 0, 3, 285, 6));
+		recipes.push(new Recipe(3, 0, 0, 120, 6));
+		recipes.push(new Recipe(0, 3, 0, 120, 6));
+		recipes.push(new Recipe(0, 0, 3, 120, 6));
 		recipes.push(new Recipe(2, 1, 0, 100, 7));
 		recipes.push(new Recipe(2, 0, 1, 100, 7));
 		recipes.push(new Recipe(1, 2, 0, 100, 7));
