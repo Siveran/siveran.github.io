@@ -1,14 +1,16 @@
 html{height:100%;width:100%;color:#F0F0F0;background:#0A0A0A;}
-body{height:100%;width:100%;margin:0;padding:0;background-repeat:no-repeat;background-attachment:fixed;background:#0A0A0A;background:-moz-linear-gradient(top,#111213 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#111213),color-stop(16%,#222326),color-stop(78%,#0a0b0f),color-stop(100%,#0a0a0a));background:-webkit-linear-gradient(top,#111213 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%);background:-o-linear-gradient(top,#111213 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%);background:-ms-linear-gradient(top,#111213 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%);background:linear-gradient(to bottom,#111213 0%,#222326 16%,#0a0b0f 78%,#0a0a0a 100%);filter:progid:DXImageTransform.Microsoft.gradient( startColorstr='#393b3f',endColorstr='#0a0a0a',GradientType=0 );}
+body{height:100%;width:100%;margin:0;padding:0;background-repeat:no-repeat;background-attachment:fixed;background:#0A0A0A;}
 h1{text-align:center;}
-hr{border-color:#171717;}
-div.core{width:61.8%;background:#222324;margin-left:17%;margin-top:1%;border-radius:10px;border:solid 2px #333;padding:30px;padding-top:15px;font-family:Arial;font-size:110%;}
+hr{border-color:#171717;opacity:0.5;}
+div.core{width:61.8%;min-width:708px;max-width:1000px;background:#222324;padding:30px;padding-top:15px;font-family:Arial;font-size:110%;box-shadow:3px 5px 20px #030303;border-radius:5px;}
 div.form{width:100%;margin-bottom:2%;margin-top:2%;}
+div.wrapper{height:96vh;width:96vw;padding:2vh 2vw;min-width:800px;display:flex;flex-direction:column;align-items:center;}
+@media(max-width:800px){div.core{width:calc(100% - 60px);margin:0;}}
 .entry{background:#444444;padding:2px;margin:2px;color:#EEEEEE;font-family:Arial;font-size:110%;width:60px;text-align:center;border-radius:3px;border:solid 1px;border-color:#555555;}
 span.rowTitle{width:30%;padding-right:2px;}
 span.rowEntry{width:60%;}
 table.result{width:100%;}
-table.formTable{width:50%;margin-left:auto;margin-right:auto;}
+table.formTable{width:560px;margin-left:auto;margin-right:auto;}
 th{width:16.67%;}
 td.rowTitle{width:27.5%;text-align:right;}
 td.rowField{width:15%;}
@@ -41,3 +43,4 @@ table.sortable thead th:hover{background-color:#3F3F3F;}
 td.long{width:22.5%;text-align:center;}
 td.squish{width:0%;}
 td.accept{width:27.5%;}
+span.highlighted{font-weight:bold;color:#EEEEAA}

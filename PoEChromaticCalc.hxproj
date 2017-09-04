@@ -8,7 +8,7 @@
     <movie fps="0" />
     <movie width="0" />
     <movie height="0" />
-    <movie version="1" />
+    <movie version="0" />
     <movie minorVersion="0" />
     <movie platform="JavaScript" />
     <movie background="#FFFFFF" />
@@ -47,7 +47,7 @@
   <options>
     <option showHiddenPaths="False" />
     <option testMovie="Webserver" />
-    <option testMovieCommand="bin/calc.html" />
+    <option testMovieCommand="" />
   </options>
   <!-- Plugin storage -->
   <storage />
