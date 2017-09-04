@@ -1,4 +1,43 @@
-(function ($hx_exports) { "use strict";
+(function (console, $hx_exports) { "use strict";
+function $extend(from, fields) {
+	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
+	for (var name in fields) proto[name] = fields[name];
+	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
+	return proto;
+}
+var Colored = function(red,green,blue) {
+	this.red = red;
+	this.green = green;
+	this.blue = blue;
+};
+Colored.__name__ = true;
+Colored.prototype = {
+	map: function(func) {
+		return new Colored(func(this.red),func(this.green),func(this.blue));
+	}
+	,zipMap: function(other,func) {
+		return new Colored(func(this.red,other.red),func(this.green,other.green),func(this.blue,other.blue));
+	}
+	,countNonZero: function() {
+		return (this.red > 0?1:0) + (this.green > 0?1:0) + (this.blue > 0?1:0);
+	}
+	,total: function() {
+		return this.red + this.green + this.blue;
+	}
+	,toString: function() {
+		return "Red: " + Std.string(this.red) + " | Green: " + Std.string(this.green) + " | Blue: " + Std.string(this.blue);
+	}
+	,add: function(other) {
+		this.red += other.red;
+		this.green += other.green;
+		this.blue += other.blue;
+	}
+	,set: function(red,green,blue) {
+		this.red = red;
+		this.green = green;
+		this.blue = blue;
+	}
+};
 var HxOverrides = function() { };
 HxOverrides.__name__ = true;
 HxOverrides.cca = function(s,index) {
@@ -18,7 +57,7 @@ HxOverrides.substr = function(s,pos,len) {
 var Main = $hx_exports.Main = function() { };
 Main.__name__ = true;
 Main.main = function() {
-	Main.recipes = new Array();
+	Main.recipes = [];
 	Main.recipes.push(new Recipe(0,0,0,1,0,"Drop Rate"));
 	Main.recipes.push(new Recipe(0,0,0,1,0,"Chromatic"));
 	Main.recipes.push(new Recipe(1,0,0,4,2));
@@ -139,16 +178,16 @@ Main.updateTable = function(probs) {
 			s = "Craft Type";
 			break;
 		case 1:
-			s = "Success Chance";
+			s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
 			break;
 		case 2:
-			s = "Average Attempts<br/><span class=\"tablesubtitle\">(mean)</span>";
+			s = "Success Chance";
 			break;
 		case 3:
-			s = "Cost per Try<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
+			s = "Average Attempts<br/><span class=\"tablesubtitle\">(mean)</span>";
 			break;
 		case 4:
-			s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
+			s = "Cost per Try<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
 			break;
 		case 5:
 			s = "Std. Deviation<br/><span class=\"tablesubtitle\">(of attempts)</span>";
@@ -164,7 +203,7 @@ Main.updateTable = function(probs) {
 	SortTable.makeSortable(Main.tableWhole);
 };
 Main.calculate = function(d) {
-	var probs = new Array();
+	var probs = [];
 	var error = false;
 	var socks = Std.parseInt(Main.sockField.value);
 	var str = Std.parseInt(Main.strField.value);
@@ -176,9 +215,6 @@ Main.calculate = function(d) {
 	if(str == null) str = 0;
 	if(dex == null) dex = 0;
 	if($int == null) $int = 0;
-	if(str > 0 && dex == 0 && $int == 0) str += 32;
-	if(str == 0 && dex > 0 && $int == 0) dex += 32;
-	if(str == 0 && dex == 0 && $int > 0) $int += 32;
 	if(socks <= 0 || socks > 6) {
 		error = true;
 		probs.push(new Probability("Error:","Invalid","number","of","sockets.",":("));
@@ -187,101 +223,154 @@ Main.calculate = function(d) {
 		error = true;
 		probs.push(new Probability("Error:","Invalid","item","stat","requirements.",":("));
 	}
+	if(str == 0 && dex == 0 && $int == 0) {
+		error = true;
+		probs.push(new Probability("Error:","Please","fill in","stat","requirements.",":("));
+	}
 	if(red < 0 || green < 0 || blue < 0 || red + blue + green == 0 || red > 6 || green > 6 || blue > 6 || red + blue + green > socks) {
 		error = true;
 		probs.push(new Probability("Error:","Invalid","desired","socket","colors.",":("));
 	}
-	if(!error) probs = Main.getProbabilities(str,dex,$int,socks,red,green,blue);
+	if(!error) {
+		var requirements = new Colored(str,dex,$int);
+		var desiredSockets = new Colored(red,green,blue);
+		probs = Main.getProbabilities(requirements,desiredSockets,socks);
+	}
 	Main.updateTable(probs);
 };
-Main.getProbabilities = function(str,dex,$int,sockets,dred,dgreen,dblue) {
-	var probs = new Array();
-	var div = str + dex + $int + 3 * Main.X;
-	if(sockets > 6 || dred > 6 || dgreen > 6 || dblue > 6 || sockets <= 0 || dred < 0 || dgreen < 0 || dblue < 0) {
-		probs.push(new Probability("Sorry,","that's","definitely","not","happening.",":I"));
-		return probs;
+Main.getColorChances = function(requirements) {
+	var X = 5;
+	var C = 5;
+	var maxOnColorChance = 0.9;
+	var totalRequirements = requirements.total();
+	var numberOfRequirements = requirements.countNonZero();
+	var requirementToChance = null;
+	switch(numberOfRequirements) {
+	case 1:
+		requirementToChance = function(requirement) {
+			if(requirement > 0) return maxOnColorChance * (X + C + requirement) / (totalRequirements + 3 * X + C); else return (1 - maxOnColorChance) / 2 + maxOnColorChance * (X / (totalRequirements + 3 * X + C));
+		};
+		break;
+	case 2:
+		requirementToChance = function(requirement1) {
+			if(requirement1 > 0) return maxOnColorChance * requirement1 / totalRequirements; else return 1 - maxOnColorChance;
+		};
+		break;
+	case 3:
+		requirementToChance = function(requirement2) {
+			return requirement2 / totalRequirements;
+		};
+		break;
 	}
+	return requirements.map(requirementToChance);
+};
+Main.getProbabilities = function(requirements,desired,totalSockets) {
+	var probs = [];
+	var colorChances = Main.getColorChances(requirements);
+	Main.simulateLotsOfChromatics(colorChances,totalSockets);
 	var _g = 0;
 	var _g1 = Main.recipes;
 	while(_g < _g1.length) {
-		var r = _g1[_g];
+		var recipe = _g1[_g];
 		++_g;
-		if(r.red <= dred && r.green <= dgreen && r.blue <= dblue) {
-			var red = dred - r.red;
-			var green = dgreen - r.green;
-			var blue = dblue - r.blue;
-			var socks = sockets - (r.red + r.green + r.blue);
-			var chance;
-			haxe.Log.trace(str,{ fileName : "Main.hx", lineNumber : 246, className : "Main", methodName : "getProbabilities", customParams : [dex,$int]});
-			Main.rc = (Main.X + str) / div;
-			Main.gc = (Main.X + dex) / div;
-			Main.bc = (Main.X + $int) / div;
-			chance = Main.multinomial(red,green,blue,socks - red - green - blue);
-			if(r.description == "Chromatic") {
-				var cb = Main.calcChromaticBonus(socks,red,green,blue);
-				chance /= 1 - cb;
+		if(recipe.red <= desired.red && recipe.green <= desired.green && recipe.blue <= desired.blue) {
+			var unvoricifiedDesires = new Colored(desired.red - recipe.red,desired.green - recipe.green,desired.blue - recipe.blue);
+			var howManySocketsDoWeNotCareAbout = totalSockets - desired.total();
+			var chance = Main.multinomial(colorChances,unvoricifiedDesires,howManySocketsDoWeNotCareAbout);
+			if(recipe.description == "Chromatic") {
+				var chanceForChromaticCollision = Main.calcChromaticBonus(colorChances,desired,totalSockets);
+				chance /= 1 - chanceForChromaticCollision;
 			}
-			probs.push(new Probability(r.description,Utils.floatToPrecisionString(chance * 100,5,false) + "%",Utils.floatToPrecisionString(1 / chance,1,null),r.description == "Drop Rate"?"-":r.cost == null?"null":"" + r.cost,r.description == "Drop Rate"?"-":Utils.floatToPrecisionString(r.cost / chance,1,null),Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)),2,null),r.cost / chance));
+			probs.push(new Probability(recipe.description,recipe.description == "Drop Rate"?"-":Utils.floatToPrecisionString(recipe.cost / chance,1,null),Utils.floatToPrecisionString(chance * 100,5,false) + "%",Utils.floatToPrecisionString(1 / chance,1,null),recipe.description == "Drop Rate"?"-":recipe.cost == null?"null":"" + recipe.cost,Utils.floatToPrecisionString(Math.sqrt(Utils.clamp(1 - chance,0,1) / (chance * chance)),2,null),recipe.cost / chance));
 		}
 	}
 	return probs;
 };
-Main.multinomial = function(red,green,blue,free,pos) {
-	if(pos == null) pos = 1;
-	if(free > 0) return (pos <= 1?Main.multinomial(red + 1,green,blue,free - 1,1):0) + (pos <= 2?Main.multinomial(red,green + 1,blue,free - 1,2):0) + Main.multinomial(red,green,blue + 1,free - 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red) * Math.pow(Main.gc,green) * Math.pow(Main.bc,blue);
+Main.simulateLotsOfChromatics = function(colorChances,totalSockets) {
+	var lastSockets = "";
+	var sockets = new Colored(0,0,0);
+	var total = new Colored(0,0,0);
+	var i = 0;
+	while(i < 100000) {
+		var j = 0;
+		var currentSockets = "";
+		sockets.set(0,0,0);
+		while(j < totalSockets) {
+			var r = Math.random();
+			if(r < colorChances.red) {
+				currentSockets += "R";
+				sockets.red++;
+			} else if(r < colorChances.green + colorChances.red) {
+				currentSockets += "G";
+				sockets.green++;
+			} else {
+				currentSockets += "B";
+				sockets.blue++;
+			}
+			j++;
+		}
+		if(currentSockets == lastSockets) continue;
+		total.add(sockets);
+		lastSockets = currentSockets;
+		i++;
+	}
+	console.log(total.toString());
 };
-Main.calcChromaticBonus = function(free,dred,dgreen,dblue,red,green,blue,pos) {
+Main.multinomial = function(colorChances,desired,free,pos) {
 	if(pos == null) pos = 1;
-	if(blue == null) blue = 0;
-	if(green == null) green = 0;
-	if(red == null) red = 0;
-	if(red >= dred && green >= dgreen && blue >= dblue) return 0; else if(free > 0) return (pos <= 1?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red + 1,green,blue,1):0) + (pos <= 2?Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green + 1,blue,2):0) + Main.calcChromaticBonus(free - 1,dred,dgreen,dblue,red,green,blue + 1,3); else return Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)) * Math.pow(Main.rc,red * 2) * Math.pow(Main.gc,green * 2) * Math.pow(Main.bc,blue * 2);
+	if(free > 0) return (pos <= 1?Main.multinomial(colorChances,new Colored(desired.red + 1,desired.green,desired.blue),free - 1,1):0) + (pos <= 2?Main.multinomial(colorChances,new Colored(desired.red,desired.green + 1,desired.blue),free - 1,2):0) + Main.multinomial(colorChances,new Colored(desired.red,desired.green,desired.blue + 1),free - 1,3); else return Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue)) * Math.pow(colorChances.red,desired.red) * Math.pow(colorChances.green,desired.green) * Math.pow(colorChances.blue,desired.blue);
+};
+Main.calcChromaticBonus = function(colorChances,desired,free,rolled,pos) {
+	if(pos == null) pos = 1;
+	if(rolled == null) rolled = new Colored(0,0,0);
+	if(rolled.red >= desired.red && rolled.green >= desired.green && rolled.blue >= desired.blue) return 0; else if(free > 0) return (pos <= 1?Main.calcChromaticBonus(colorChances,desired,free - 1,new Colored(rolled.red + 1,rolled.green,rolled.blue),1):0) + (pos <= 2?Main.calcChromaticBonus(colorChances,desired,free - 1,new Colored(rolled.red,rolled.green + 1,rolled.blue),2):0) + Main.calcChromaticBonus(colorChances,desired,free - 1,new Colored(rolled.red,rolled.green,rolled.blue + 1),3); else return Utils.factorial(rolled.total()) / (Utils.factorial(rolled.red) * Utils.factorial(rolled.green) * Utils.factorial(rolled.blue)) * Math.pow(colorChances.red,rolled.red * 2) * Math.pow(colorChances.green,rolled.green * 2) * Math.pow(colorChances.blue,rolled.blue * 2);
 };
 Math.__name__ = true;
-var Probability = function(h,p,t,c,a,v,f) {
-	if(f == null) f = 0;
-	this.how = h;
-	this.prob = p;
-	this.tries = t;
-	this.cost = c;
-	this.avg = a;
-	this.reqVorici = v;
-	this.favg = f;
+var Probability = function(recipeName,avgCost,chance,avgTries,recipeCost,stdDev,favg) {
+	if(favg == null) favg = 0;
+	this.recipeName = recipeName;
+	this.chance = chance;
+	this.avgTries = avgTries;
+	this.recipeCost = recipeCost;
+	this.avgCost = avgCost;
+	this.stdDev = stdDev;
+	this.favg = favg;
 };
 Probability.__name__ = true;
 Probability.prototype = {
 	get: function(part) {
 		switch(part) {
 		case 0:
-			return this.how;
+			return this.recipeName;
 		case 1:
-			return this.prob;
+			return "<span class=\"highlighted\">" + this.avgCost + "</b>";
 		case 2:
-			return this.tries;
+			return this.chance;
 		case 3:
-			return this.cost;
+			return this.avgTries;
 		case 4:
-			return this.avg;
+			return this.recipeCost;
 		case 5:
-			return this.reqVorici;
+			return this.stdDev;
 		default:
 			return "N/A";
 		}
 	}
 };
 var Recipe = function(r,g,b,c,l,d) {
-	this.red = r;
-	this.green = g;
-	this.blue = b;
+	Colored.call(this,r,g,b);
 	this.cost = c;
 	this.level = l;
 	if(d == null) this.description = "Vorici " + (r > 0?r + "R":"") + (g > 0?g + "G":"") + (b > 0?b + "B":""); else this.description = d;
 };
 Recipe.__name__ = true;
+Recipe.__super__ = Colored;
+Recipe.prototype = $extend(Colored.prototype,{
+});
 var Std = function() { };
 Std.__name__ = true;
 Std.string = function(s) {
-	return js.Boot.__string_rec(s,"");
+	return js_Boot.__string_rec(s,"");
 };
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
@@ -619,35 +708,9 @@ Utils.factorial = function(x) {
 	}
 	return r * sign;
 };
-var haxe = {};
-haxe.Log = function() { };
-haxe.Log.__name__ = true;
-haxe.Log.trace = function(v,infos) {
-	js.Boot.__trace(v,infos);
-};
-var js = {};
-js.Boot = function() { };
-js.Boot.__name__ = true;
-js.Boot.__unhtml = function(s) {
-	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
-};
-js.Boot.__trace = function(v,i) {
-	var msg;
-	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
-	msg += js.Boot.__string_rec(v,"");
-	if(i != null && i.customParams != null) {
-		var _g = 0;
-		var _g1 = i.customParams;
-		while(_g < _g1.length) {
-			var v1 = _g1[_g];
-			++_g;
-			msg += "," + js.Boot.__string_rec(v1,"");
-		}
-	}
-	var d;
-	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js.Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
-};
-js.Boot.__string_rec = function(o,s) {
+var js_Boot = function() { };
+js_Boot.__name__ = true;
+js_Boot.__string_rec = function(o,s) {
 	if(o == null) return "null";
 	if(s.length >= 5) return "<...>";
 	var t = typeof(o);
@@ -657,24 +720,24 @@ js.Boot.__string_rec = function(o,s) {
 		if(o instanceof Array) {
 			if(o.__enum__) {
 				if(o.length == 2) return o[0];
-				var str = o[0] + "(";
+				var str2 = o[0] + "(";
 				s += "\t";
 				var _g1 = 2;
 				var _g = o.length;
 				while(_g1 < _g) {
-					var i = _g1++;
-					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
+					var i1 = _g1++;
+					if(i1 != 2) str2 += "," + js_Boot.__string_rec(o[i1],s); else str2 += js_Boot.__string_rec(o[i1],s);
 				}
-				return str + ")";
+				return str2 + ")";
 			}
 			var l = o.length;
-			var i1;
+			var i;
 			var str1 = "[";
 			s += "\t";
 			var _g2 = 0;
 			while(_g2 < l) {
 				var i2 = _g2++;
-				str1 += (i2 > 0?",":"") + js.Boot.__string_rec(o[i2],s);
+				str1 += (i2 > 0?",":"") + js_Boot.__string_rec(o[i2],s);
 			}
 			str1 += "]";
 			return str1;
@@ -685,12 +748,12 @@ js.Boot.__string_rec = function(o,s) {
 		} catch( e ) {
 			return "???";
 		}
-		if(tostr != null && tostr != Object.toString) {
+		if(tostr != null && tostr != Object.toString && typeof(tostr) == "function") {
 			var s2 = o.toString();
 			if(s2 != "[object Object]") return s2;
 		}
 		var k = null;
-		var str2 = "{\n";
+		var str = "{\n";
 		s += "\t";
 		var hasp = o.hasOwnProperty != null;
 		for( var k in o ) {
@@ -700,12 +763,12 @@ js.Boot.__string_rec = function(o,s) {
 		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
 			continue;
 		}
-		if(str2.length != 2) str2 += ", \n";
-		str2 += s + k + " : " + js.Boot.__string_rec(o[k],s);
+		if(str.length != 2) str += ", \n";
+		str += s + k + " : " + js_Boot.__string_rec(o[k],s);
 		}
 		s = s.substring(1);
-		str2 += "\n" + s + "}";
-		return str2;
+		str += "\n" + s + "}";
+		return str;
 	case "function":
 		return "<function>";
 	case "string":
@@ -714,18 +777,8 @@ js.Boot.__string_rec = function(o,s) {
 		return String(o);
 	}
 };
-Math.NaN = Number.NaN;
-Math.NEGATIVE_INFINITY = Number.NEGATIVE_INFINITY;
-Math.POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
-Math.isFinite = function(i) {
-	return isFinite(i);
-};
-Math.isNaN = function(i1) {
-	return isNaN(i1);
-};
 String.__name__ = true;
 Array.__name__ = true;
-Main.X = 22;
 Utils.TWOPI = 6.28318530717958647693;
 Main.main();
-})(typeof window != "undefined" ? window : exports);
+})(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : exports);

@@ -20,7 +20,6 @@ import js.Lib;
 
 @:expose
 class Main {
-	static var X:Float = 22;
 	static var recipes:Array<Recipe>;
 	static var sockField:TextAreaElement;
 	static var strField:TextAreaElement;
@@ -162,10 +161,10 @@ class Main {
 			var s:String = "";
 			switch (i) {
 				case 0: s = "Craft Type";
-				case 1: s = "Success Chance";
-				case 2: s = "Average Attempts<br/><span class=\"tablesubtitle\">(mean)</span>";
-				case 3: s = "Cost per Try<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
-				case 4: s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
+				case 1: s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
+				case 2: s = "Success Chance";
+				case 3: s = "Average Attempts<br/><span class=\"tablesubtitle\">(mean)</span>";
+				case 4: s = "Cost per Try<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
 				case 5: s = "Std. Deviation<br/><span class=\"tablesubtitle\">(of attempts)</span>";
 			}
 			th.classList.remove("SortTable_sorted");
@@ -195,9 +194,6 @@ class Main {
 		if (str == null) str = 0;
 		if (dex == null) dex = 0;
 		if (int == null) int = 0;
-		if (str > 0 && dex == 0 && int == 0) str += 32;
-		if (str == 0 && dex > 0 && int == 0) dex += 32;
-		if (str == 0 && dex == 0 && int > 0) int += 32;
 		
 		// Check validity, display error messages in silly ways
 		if (socks <= 0 || socks > 6) {
@@ -208,102 +204,190 @@ class Main {
 			error = true;
 			probs.push(new Probability("Error:", "Invalid", "item", "stat", "requirements.", ":("));
 		}
+		if (str == 0 && dex == 0 && int == 0) {
+			error = true;
+			probs.push(new Probability("Error:", "Please", "fill in", "stat", "requirements.", ":("));
+		}
 		if (red < 0 || green < 0 || blue < 0 || red + blue + green == 0 || red > 6 || green > 6 || blue > 6 || red + blue + green > socks) {
 			error = true;
 			probs.push(new Probability("Error:", "Invalid", "desired", "socket", "colors.", ":("));
 		}
+		
+		// No problems! Move along and do the real work.
 		if (!error) {
-			probs = getProbabilities(str, dex, int, socks, red, green, blue);
+			var requirements = new Colored<Int>(str, dex, int);
+			var desiredSockets = new Colored<Int>(red, green, blue);
+			probs = getProbabilities(requirements, desiredSockets, socks);
 		}
 		
 		// Push results to HTML
 		updateTable(probs);
 	}
 	
-	private static function getProbabilities(str:Int, dex:Int, int:Int, sockets:Int, dred:Int, dgreen:Int, dblue:Int) : Array<Probability> {
-		var probs = new Array<Probability>();
-		var div:Float = str + dex + int + 3 * X;
+	// Get the chances for colors based on requirements
+	private static function getColorChances(requirements:Colored<Int>): Colored<Float> {
+		// Constants! These are the hardest 3 numbers to find.
+		var X:Int = 5; // The X in [(Requirement + X + C) / (Requirement + 3X + C)] for on-color mono-requirement chances
+		var C:Int = 5; // The C in the above. Off-colors don't get the +C in the numerator, but do get X.
+		var maxOnColorChance:Float = 0.9; // What the on-color chance appears to approach with extremely high requirements.
 		
-		// Sanity check; only use Vorici crafts that are directly in line with what you want.
-		if (sockets > 6 || dred > 6 || dgreen > 6 || dblue > 6 ||
-			sockets <= 0 || dred < 0 || dgreen < 0 || dblue < 0) {
-			probs.push(new Probability("Sorry,", "that's", "definitely", "not", "happening.", ":I"));
-			return probs;
+		var totalRequirements:Float = requirements.total();
+		var numberOfRequirements = requirements.countNonZero();
+		var requirementToChance: Int -> Float = null;
+		
+		// Use a different formula based on how many requirements there are
+		switch (numberOfRequirements) {
+		case 1: // Single requirement items, like prophecy wands and vaal regalia
+			requirementToChance = function (requirement: Int) : Float { 
+				if (requirement > 0) {
+					// The real meat.
+					// The chance for rolling an on-color socket for a mono-requirement item is
+					//    X + C + requirement
+					//   --------------------- * maxOnColorChance
+					//    3X + C + totalReqs
+					// In other words, the on-color chance approaches maxOnColorChance as requirement approaches infinity.
+					return maxOnColorChance * (X + C + requirement) / (totalRequirements + 3 * X + C);
+				} else {
+					// The off-color chance is the remaining chance divided by 2.
+					return ((1 - maxOnColorChance) / 2) + maxOnColorChance * (X / (totalRequirements + 3 * X + C));
+				}
+			};
+		case 2: // Dual requirement items, like daggers and carnal armour
+			requirementToChance = function (requirement: Int) : Float {
+				if (requirement > 0) {
+					// If on-color, split the maxOnColorChance, weighted based on the requirements.
+					return maxOnColorChance * requirement / totalRequirements;
+				} else {
+					// If off-color, it gets the whole off-color chance
+					return 1 - maxOnColorChance;
+				}
+			};
+		case 3: // Tri-requirement items, like Atziri's Splendour and things I'll never have because I'm bad at racing
+			requirementToChance = function (requirement: Int) : Float { 
+				// For all current things that have equal requirements, it should be 1/3 chance per color.
+				// There's no way to test how a 50 str/25 dex/100 int item behaves, so it's just, like, a guess.
+				return requirement / totalRequirements;
+			};
 		}
 		
+		// Run the function on the requirements to get the actual chances
+		return requirements.map(requirementToChance);
+	}
+	
+	// Get the probabilities for each Vorici recipe and chromatic orbs
+	private static function getProbabilities(requirements: Colored<Int>, desired: Colored<Int>, totalSockets: Int) : Array<Probability> {
+		var probs = new Array<Probability>();
+		var colorChances = getColorChances(requirements);
+		simulateLotsOfChromatics(colorChances, totalSockets);
+		
 		// For every Vorici recipe (plus just chroming yourself)
-		for (r in recipes) {
+		for (recipe in recipes) {
 			// Recipe sanity check (you won't use 3R when you want BBBBBB)
-			if (r.red <= dred && r.green <= dgreen && r.blue <= dblue) {
-				// Subtract the forced sockets out; we don't need to consider them
-				var red = dred - r.red;
-				var green = dgreen - r.green;
-				var blue = dblue - r.blue;
-				var socks:Int = sockets - (r.red + r.green + r.blue);
+			if (recipe.red <= desired.red && recipe.green <= desired.green && recipe.blue <= desired.blue) {
+				// Subtract the forced sockets out; we don't need to consider them.
+				// Unvoricified Desires are the sockets that haven't been guaranteed by Vorici that we still care about.
+				// I highly enjoy making up words.
+				var unvoricifiedDesires = new Colored<Int>(desired.red - recipe.red, desired.green - recipe.green, desired.blue - recipe.blue);
+				var howManySocketsDoWeNotCareAbout:Int = totalSockets - desired.total();
 				
-				var chance:Float;
 				// BRUTE FORCE
-				trace(str, dex, int);
-				rc = (X + str) / div;
-				gc = (X + dex) / div;
-				bc = (X + int) / div;
-				chance = multinomial(red, green, blue, socks - red - green - blue);
-				if (r.description == "Chromatic") {
+				var chance = multinomial(colorChances, unvoricifiedDesires, howManySocketsDoWeNotCareAbout);
+				if (recipe.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
-					var cb = calcChromaticBonus(socks, red, green, blue);
-					chance /= 1 - cb;
+					var chanceForChromaticCollision = calcChromaticBonus(colorChances, desired, totalSockets);
+					chance /= 1 - chanceForChromaticCollision;
 				}
-				//probs.push(new Probability(r.description, Utils.floatToPercent(chance), Std.string(r.cost), Utils.floatToPrecisionString(r.cost / chance, 1), Std.string(r.level)));
-				probs.push(new Probability(r.description,
+				
+				probs.push(new Probability(recipe.description,
+					recipe.description == "Drop Rate" ? "-" : Utils.floatToPrecisionString(recipe.cost / chance, 1)/* + " <img src=\"chromsmall.png\"\\>"*/,
 					Utils.floatToPercent(chance),
 					Utils.floatToPrecisionString(1 / chance, 1),
-					r.description == "Drop Rate" ? "-" : Std.string(r.cost)/* + " <img src=\"chromsmall.png\"\\>"*/,
-					r.description == "Drop Rate" ? "-" : Utils.floatToPrecisionString(r.cost / chance, 1)/* + " <img src=\"chromsmall.png\"\\>"*/,
-					Utils.floatToPrecisionString(Math.sqrt((1 - chance) / (chance * chance)), 2),
-					r.cost/chance)); 
+					recipe.description == "Drop Rate" ? "-" : Std.string(recipe.cost)/* + " <img src=\"chromsmall.png\"\\>"*/,
+					Utils.floatToPrecisionString(Math.sqrt(Utils.clamp((1 - chance), 0, 1) / (chance * chance)), 2),
+					recipe.cost/chance));
 			}
 		}
 		
 		return probs;
 	}
 	
-	// Color chances. Held in static memory rather than being passed recursiively,
-	// because these values don't change and I don't want to fill the stack THAT fast.
-	// They're set in getProbabilities().
-	static var rc:Float;
-	static var gc:Float;
-	static var bc:Float;
+	private static function simulateLotsOfChromatics(colorChances: Colored<Float>, totalSockets: Int) {
+		var lastSockets = "";
+		var sockets = new Colored<Int>(0, 0, 0);
+		var total = new Colored<Int>(0, 0, 0);
+		var i = 0;
+		while (i < 100000) {
+			// Roll each socket
+			var j = 0;
+			var currentSockets = "";
+			sockets.set(0, 0, 0);
+			while (j < totalSockets) {
+				// Roll a socket
+				var r = Math.random();
+				if (r < colorChances.red) {
+					currentSockets += "R";
+					sockets.red++;
+				} else if (r < colorChances.green + colorChances.red) {
+					currentSockets += "G";
+					sockets.green++;
+				} else {
+					currentSockets += "B";
+					sockets.blue++;
+				}
+				j++;
+			}
+			
+			// If that was what we got last time...
+			if (currentSockets == lastSockets) {
+				continue; // Roll again.
+			}
+			
+			// Otherwise sum it up
+			total.add(sockets);
+			lastSockets = currentSockets;
+			i++;
+		}
+		trace(total.toString());
+	}
 	
+	// Determines the chance of getting what you want based on the individual color chances.
 	// Brute force a cumulative probability mass function thing for a multinomial distribution.
 	// I do this because there's a simple PMF for specific ordered results, but we want a range of results,
 	// because we really don't care about some sockets. RRRB, RRRG, RRRR are all valid if you want RRR.
 	// But not caring is hard. BRUTE HARD.
-	private static function multinomial(red:Int, green:Int, blue:Int, free:Int, pos:Int = 1) : Float {
+	private static function multinomial(colorChances: Colored<Float>, desired: Colored<Int>, free:Int, pos:Int = 1) : Float {
 		if (free > 0) {
 			// GENIES TAKE THE WHEEL
-			return (pos <= 1 ? multinomial(red + 1, green, blue, free - 1, 1) : 0) +
-				(pos <= 2 ? multinomial(red, green + 1, blue, free - 1, 2) : 0) +
-				multinomial(red, green, blue + 1, free - 1, 3);
+			// pos is the position in the recursive tree and keeps track of history.
+			// It prevents us from calculating the unordered chance for RGGB and RGBG and adding them, for example.
+			return (pos <= 1 ? multinomial(colorChances, new Colored<Int>(desired.red + 1, desired.green, desired.blue), free - 1, 1) : 0) +
+				(pos <= 2 ? multinomial(colorChances, new Colored<Int>(desired.red, desired.green + 1, desired.blue), free - 1, 2) : 0) +
+				multinomial(colorChances, new Colored<Int>(desired.red, desired.green, desired.blue + 1), free - 1, 3);
 		} else {
 			// oh i'm the genie
-			return (Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)))
-				* Math.pow(rc, red) * Math.pow(gc, green) * Math.pow(bc, blue);
+			return (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue)))
+				* Math.pow(colorChances.red, desired.red) * Math.pow(colorChances.green, desired.green) * Math.pow(colorChances.blue, desired.blue);
 		}
 	}
 	
-	// Because chromatic orbs can't get the same result multiple times in a row, we find the average reroll chance.
-	private static function calcChromaticBonus(free:Int, dred:Int, dgreen:Int, dblue:Int, red:Int = 0, green:Int = 0, blue:Int = 0, pos:Int = 1) : Float {
-		if (red >= dred && green >= dgreen && blue >= dblue) {
+	// Because chromatic orbs can't get the same result multiple times in a row, we find the average repeat chance.
+	private static function calcChromaticBonus(colorChances: Colored<Float>, desired: Colored<Int>, free:Int, rolled: Colored<Int> = null, pos:Int = 1) : Float {
+		if (rolled == null) {
+			rolled = new Colored<Int>(0, 0, 0);
+		}
+		
+		if (rolled.red >= desired.red && rolled.green >= desired.green && rolled.blue >= desired.blue) {
 			return 0; // We do this because you (hopefully) don't reroll it again if you have the desired colors, so there's no chromatic bonus from successes.
 		} else if (free > 0) {
 			// GENIES TAKE THE WHEEL
-			return (pos <= 1 ? calcChromaticBonus(free - 1, dred, dgreen, dblue, red + 1, green, blue, 1) : 0) +
-				(pos <= 2 ? calcChromaticBonus(free - 1, dred, dgreen, dblue, red, green + 1, blue, 2) : 0) +
-				calcChromaticBonus(free - 1, dred, dgreen, dblue, red, green, blue + 1, 3);
+			return (pos <= 1 ? calcChromaticBonus(colorChances, desired, free - 1, new Colored<Int>(rolled.red + 1, rolled.green, rolled.blue), 1) : 0) +
+				(pos <= 2 ? calcChromaticBonus(colorChances, desired, free - 1, new Colored<Int>(rolled.red, rolled.green + 1, rolled.blue), 2) : 0) +
+				calcChromaticBonus(colorChances, desired, free - 1, new Colored<Int>(rolled.red, rolled.green, rolled.blue + 1), 3);
 		} else {
 			// oh i'm the genie
-			return (Utils.factorial(red + green + blue) / (Utils.factorial(red) * Utils.factorial(green) * Utils.factorial(blue)))
-				* Math.pow(rc, red * 2) * Math.pow(gc, green * 2) * Math.pow(bc, blue * 2);
+			return (Utils.factorial(rolled.total()) / (Utils.factorial(rolled.red) * Utils.factorial(rolled.green) * Utils.factorial(rolled.blue)))
+				* Math.pow(colorChances.red, rolled.red * 2) * Math.pow(colorChances.green, rolled.green * 2) * Math.pow(colorChances.blue, rolled.blue * 2);
+			// Note: the *2 in the exponents of the above are because we have to roll a permutation twice in a row before chromatic rerolls happen.
 		}
 	}
 }

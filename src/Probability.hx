@@ -5,32 +5,32 @@ package ;
  * @author Siveran
  */
 class Probability {
-	public var how:String;
-	public var prob:String;
-	public var tries:String;
-	public var cost:String;
-	public var avg:String;
-	public var reqVorici:String;
+	public var recipeName:String;
+	public var chance:String;
+	public var avgTries:String;
+	public var recipeCost:String;
+	public var avgCost:String;
+	public var stdDev:String;
 	public var favg:Float;
 	
-	public function new(h:String, p:String, t:String, c:String, a:String, v:String, f:Float = 0) {
-		how = h;
-		prob = p;
-		tries = t;
-		cost = c;
-		avg = a;
-		reqVorici = v;
-		favg = f;
+	public function new(recipeName:String, avgCost:String, chance:String, avgTries:String, recipeCost:String, stdDev:String, favg:Float = 0) {
+		this.recipeName = recipeName;
+		this.chance = chance;
+		this.avgTries = avgTries;
+		this.recipeCost = recipeCost;
+		this.avgCost = avgCost;
+		this.stdDev = stdDev;
+		this.favg = favg;
 	}
 	
 	public function get(part:Int) : String {
 		switch (part) {
-			case 0: return how;
-			case 1: return prob;
-			case 2: return tries;
-			case 3: return cost;
-			case 4: return avg;
-			case 5: return reqVorici;
+			case 0: return recipeName;
+			case 1: return "<span class=\"highlighted\">" + avgCost + "</b>";
+			case 2: return chance;
+			case 3: return avgTries;
+			case 4: return recipeCost;
+			case 5: return stdDev;
 			default: return "N/A";
 		}
 	}
