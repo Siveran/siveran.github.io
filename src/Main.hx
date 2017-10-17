@@ -196,6 +196,10 @@ class Main {
 		if (int == null) int = 0;
 		
 		// Check validity, display error messages in silly ways
+		if(socks == null) {
+			socks = red + blue + green;
+			sockField.value = Std.string(socks);
+		}
 		if (socks <= 0 || socks > 6) {
 			error = true;
 			probs.push(new Probability("Error:", "Invalid", "number", "of", "sockets.", ":("));
