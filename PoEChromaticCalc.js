@@ -215,6 +215,10 @@ Main.calculate = function(d) {
 	if(str == null) str = 0;
 	if(dex == null) dex = 0;
 	if($int == null) $int = 0;
+	if(socks == null) {
+		socks = red + blue + green;
+		Main.sockField.value = "" + socks;
+	}
 	if(socks <= 0 || socks > 6) {
 		error = true;
 		probs.push(new Probability("Error:","Invalid","number","of","sockets.",":("));
