@@ -1,0 +1,27 @@
+{
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "eslint": "^10.7.0",
+    "prettier": "^3.9.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  },
+  "name": "siveran.github.io",
+  "version": "1.0.0",
+  "description": "VoriciCalc\r ==========",
+  "main": "PoEChromaticCalc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Siveran/siveran.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Siveran/siveran.github.io/issues"
+  },
+  "homepage": "https://github.com/Siveran/siveran.github.io#readme"
+}
