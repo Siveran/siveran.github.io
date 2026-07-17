@@ -9,8 +9,8 @@ export class Recipe extends Colored {
 	public cost: number;
 	public level: number;
 	
-	public constructor(r: number, g: number, b: number, c: number, l: number, d: string | null = null) {
-		super(r, g, b);
+	public constructor(r: number, g: number, b: number, w: number, c: number, l: number, d: string | null = null) {
+		super(r, g, b, w);
 		this.cost = c;
 		this.level = l;
 		if (d == null) {

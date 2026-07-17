@@ -23,26 +23,26 @@ export class Main {
 	static main(): void {
 		// All the ways to change the socket colors
 		let recipes: Recipe[] = [];
-		recipes.push(new Recipe(0, 0, 0, 1, 0, "Drop Rate"));
-		recipes.push(new Recipe(0, 0, 0, 1, 0, "Chromatic"));
-		recipes.push(new Recipe(1, 0, 0, 4, 2));
-		recipes.push(new Recipe(0, 1, 0, 4, 2));
-		recipes.push(new Recipe(0, 0, 1, 4, 2));
-		recipes.push(new Recipe(2, 0, 0, 25, 3));
-		recipes.push(new Recipe(0, 2, 0, 25, 3));
-		recipes.push(new Recipe(0, 0, 2, 25, 3));
-		recipes.push(new Recipe(0, 1, 1, 15, 4));
-		recipes.push(new Recipe(1, 0, 1, 15, 4));
-		recipes.push(new Recipe(1, 1, 0, 15, 4));
-		recipes.push(new Recipe(3, 0, 0, 120, 6));
-		recipes.push(new Recipe(0, 3, 0, 120, 6));
-		recipes.push(new Recipe(0, 0, 3, 120, 6));
-		recipes.push(new Recipe(2, 1, 0, 100, 7));
-		recipes.push(new Recipe(2, 0, 1, 100, 7));
-		recipes.push(new Recipe(1, 2, 0, 100, 7));
-		recipes.push(new Recipe(0, 2, 1, 100, 7));
-		recipes.push(new Recipe(1, 0, 2, 100, 7));
-		recipes.push(new Recipe(0, 1, 2, 100, 7));
+		recipes.push(new Recipe(0, 0, 0, 0, 1, 0, "Drop Rate"));
+		recipes.push(new Recipe(0, 0, 0, 0, 1, 0, "Chromatic"));
+		recipes.push(new Recipe(1, 0, 0, 0, 4, 2));
+		recipes.push(new Recipe(0, 1, 0, 0, 4, 2));
+		recipes.push(new Recipe(0, 0, 1, 0, 4, 2));
+		recipes.push(new Recipe(2, 0, 0, 0, 25, 3));
+		recipes.push(new Recipe(0, 2, 0, 0, 25, 3));
+		recipes.push(new Recipe(0, 0, 2, 0, 25, 3));
+		recipes.push(new Recipe(0, 1, 1, 0, 15, 4));
+		recipes.push(new Recipe(1, 0, 1, 0, 15, 4));
+		recipes.push(new Recipe(1, 1, 0, 0, 15, 4));
+		recipes.push(new Recipe(3, 0, 0, 0, 120, 6));
+		recipes.push(new Recipe(0, 3, 0, 0, 120, 6));
+		recipes.push(new Recipe(0, 0, 3, 0, 120, 6));
+		recipes.push(new Recipe(2, 1, 0, 0, 100, 7));
+		recipes.push(new Recipe(2, 0, 1, 0, 100, 7));
+		recipes.push(new Recipe(1, 2, 0, 0, 100, 7));
+		recipes.push(new Recipe(0, 2, 1, 0, 100, 7));
+		recipes.push(new Recipe(1, 0, 2, 0, 100, 7));
+		recipes.push(new Recipe(0, 1, 2, 0, 100, 7));
 		Main.recipes = recipes;
 		
 		// All the input fields and the result table that the script touches
@@ -191,8 +191,6 @@ export class Main {
 		if (isNaN(red) || red < 0) red = 0;
 		if (isNaN(green) || green < 0) green = 0;
 		if (isNaN(blue) || blue < 0) blue = 0;
-
-		console.log(str + " " + dex + " " + int);
 		
 		// Check validity, display error messages in silly ways
 		if(socks == 0) {
@@ -218,8 +216,8 @@ export class Main {
 		
 		// No problems! Move along and do the real work.
 		if (!error) {
-			var requirements = new Colored(str, dex, int);
-			var desiredSockets = new Colored(red, green, blue);
+			var requirements = new Colored(str, dex, int, 0);
+			var desiredSockets = new Colored(red, green, blue, 0);
 			probs = Main.getProbabilities(requirements, desiredSockets, socks);
 		}
 		
@@ -275,9 +273,21 @@ export class Main {
 			};
 			break;
 		}
+
+		var chances = new Colored(requirementToChance(requirements.red), requirementToChance(requirements.green), requirementToChance(requirements.blue), 0);
 		
 		// Run the on the requirements to get the actual chances
-		return requirements.map(requirementToChance);
+		return Main.diluteChances(chances);
+	}
+
+	// New in 3.29: There's a high chance that sockets will be white.
+	public static diluteChances(undilutedChances: Colored): Colored {
+	    var whiteChanceField = document.getElementById("whiteChance") as HTMLTextAreaElement;
+		var whiteChance: number = parseFloat(whiteChanceField.value);
+		if (isNaN(whiteChance) || whiteChance < 0 || whiteChance >= 100) whiteChance = 0;
+		whiteChance /= 100;
+		var coloredChance = 1 - whiteChance;
+		return new Colored(undilutedChances.red * coloredChance, undilutedChances.green * coloredChance, undilutedChances.blue * coloredChance, whiteChance);
 	}
 	
 	// Get the probabilities for each recipe
@@ -292,7 +302,7 @@ export class Main {
 			if (recipe.red <= desired.red && recipe.green <= desired.green && recipe.blue <= desired.blue) {
 				// Subtract the forced sockets out; we don't need to consider them.
 				// Unvoricified Desires are the sockets that haven't been guaranteed by the recipe that we still care about.
-				var unvoricifiedDesires = new Colored(desired.red - recipe.red, desired.green - recipe.green, desired.blue - recipe.blue);
+				var unvoricifiedDesires = new Colored(desired.red - recipe.red, desired.green - recipe.green, desired.blue - recipe.blue, desired.white - recipe.white);
 				var howManySocketsDoWeNotCareAbout: number = totalSockets - desired.total();
 				
 				// BRUTE FORCE
@@ -316,17 +326,18 @@ export class Main {
 		return probs;
 	}
 	
+	// Test function to check to make sure chromatic bonuses are working correctly.
 	private static simulateLotsOfChromatics(colorChances: Colored, totalSockets: number) {
 		var lastSockets = "";
-		var sockets = new Colored(0, 0, 0);
-		var total = new Colored(0, 0, 0);
+		var sockets = new Colored(0, 0, 0, 0);
+		var total = new Colored(0, 0, 0, 0);
 		var i = 0;
 		var rerolls = 0;
 		while (i < 100000) {
 			// Roll each socket
 			var j = 0;
 			var currentSockets = "";
-			sockets.set(0, 0, 0);
+			sockets.set(0, 0, 0, 0);
 			while (j < totalSockets) {
 				// Roll a socket
 				var r = Math.random();
@@ -370,33 +381,35 @@ export class Main {
 			// tell a genie to do it
 			// pos is the position in the recursive tree and keeps track of history.
 			// It prevents us from calculating the unordered chance for RGGB and RGBG and adding them, for example.
-			return (pos <= 1 ? Main.multinomial(colorChances, new Colored(desired.red + 1, desired.green, desired.blue), free - 1, 1) : 0) +
-				(pos <= 2 ? Main.multinomial(colorChances, new Colored(desired.red, desired.green + 1, desired.blue), free - 1, 2) : 0) +
-				Main.multinomial(colorChances, new Colored(desired.red, desired.green, desired.blue + 1), free - 1, 3);
+			return (pos <= 1 ? Main.multinomial(colorChances, new Colored(desired.red + 1, desired.green, desired.blue, desired.white), free - 1, 1) : 0) +
+				(pos <= 2 ? Main.multinomial(colorChances, new Colored(desired.red, desired.green + 1, desired.blue, desired.white), free - 1, 2) : 0) +
+				(pos <= 3 ? Main.multinomial(colorChances, new Colored(desired.red, desired.green, desired.blue + 1, desired.white), free - 1, 3) : 0) +
+				Main.multinomial(colorChances, new Colored(desired.red, desired.green, desired.blue, desired.white + 1), free - 1, 4);
 		} else {
 			// oh i'm the genie
-			return (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue)))
-				* Math.pow(colorChances.red, desired.red) * Math.pow(colorChances.green, desired.green) * Math.pow(colorChances.blue, desired.blue);
+			return (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue) * Utils.factorial(desired.white)))
+				* Math.pow(colorChances.red, desired.red) * Math.pow(colorChances.green, desired.green) * Math.pow(colorChances.blue, desired.blue) * Math.pow(colorChances.white, desired.white);
 		}
 	}
 	
 	// Because chromatic orbs can't get the same result multiple times in a row, we find the average repeat chance.
 	private static calcChromaticBonus(colorChances: Colored, desired: Colored, free: number, rolled: Colored = null, pos: number = 1) : number {
 		if (rolled == null) {
-			rolled = new Colored(0, 0, 0);
+			rolled = new Colored(0, 0, 0, 0);
 		}
 		
-		if (rolled.red >= desired.red && rolled.green >= desired.green && rolled.blue >= desired.blue) {
+		if (rolled.red >= desired.red && rolled.green >= desired.green && rolled.blue >= desired.blue && rolled.white >= desired.white) {
 			return 0; // We do this because you (hopefully) don't reroll it again if you have the desired colors, so there's no chromatic bonus from successes.
 		} else if (free > 0) {
 			// tell a genie to do it
-			return (pos <= 1 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red + 1, rolled.green, rolled.blue), 1) : 0) +
-				(pos <= 2 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green + 1, rolled.blue), 2) : 0) +
-				Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green, rolled.blue + 1), 3);
+			return (pos <= 1 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red + 1, rolled.green, rolled.blue, rolled.white), 1) : 0) +
+				(pos <= 2 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green + 1, rolled.blue, rolled.white), 2) : 0) +
+				(pos <= 3 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green, rolled.blue + 1, rolled.white), 3) : 0) +
+				Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green, rolled.blue, rolled.white + 1), 4);
 		} else {
 			// oh i'm the genie
-			return (Utils.factorial(rolled.total()) / (Utils.factorial(rolled.red) * Utils.factorial(rolled.green) * Utils.factorial(rolled.blue)))
-				* Math.pow(colorChances.red, rolled.red * 2) * Math.pow(colorChances.green, rolled.green * 2) * Math.pow(colorChances.blue, rolled.blue * 2);
+			return (Utils.factorial(rolled.total()) / (Utils.factorial(rolled.red) * Utils.factorial(rolled.green) * Utils.factorial(rolled.blue) * Utils.factorial(rolled.white)))
+				* Math.pow(colorChances.red, rolled.red * 2) * Math.pow(colorChances.green, rolled.green * 2) * Math.pow(colorChances.blue, rolled.blue * 2) * Math.pow(colorChances.white, rolled.white * 2);
 			// Note: the *2 in the exponents of the above are because we have to roll a permutation twice in a row before chromatic rerolls happen.
 		}
 	}

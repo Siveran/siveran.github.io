@@ -11,12 +11,12 @@ export class Probability {
 	public stdDev: string;
 	public favg: number;
 	
-	public constructor(recipeName: string, chance: string, avgTries: string, recipeCost: string, avgCost: string, stdDev: string, favg: number = 0) {
+	public constructor(recipeName: string, avgCost: string, chance: string, avgTries: string, recipeCost: string, stdDev: string, favg: number = 0) {
 		this.recipeName = recipeName;
+		this.avgCost = avgCost;
 		this.chance = chance;
 		this.avgTries = avgTries;
 		this.recipeCost = recipeCost;
-		this.avgCost = avgCost;
 		this.stdDev = stdDev;
 		this.favg = favg;
 	}
