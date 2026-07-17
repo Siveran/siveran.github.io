@@ -8,7 +8,7 @@ import { Utils } from "./Utils";
  * for Path of Exile: Curse of the Allflame.
  * @author Siveran
  */
-class Main {
+export class Main {
 	static recipes: Recipe[];
 	static sockField: HTMLTextAreaElement;
 	static strField: HTMLTextAreaElement;
@@ -19,7 +19,6 @@ class Main {
 	static blueField: HTMLTextAreaElement;
 	static table: HTMLTableSectionElement;
 	static tableWhole: HTMLTableElement;
-	static recycle: HTMLTableSectionElement;
 	
 	static main(): void {
 		// All the ways to change the socket colors
@@ -44,6 +43,7 @@ class Main {
 		recipes.push(new Recipe(0, 2, 1, 100, 7));
 		recipes.push(new Recipe(1, 0, 2, 100, 7));
 		recipes.push(new Recipe(0, 1, 2, 100, 7));
+		Main.recipes = recipes;
 		
 		// All the input fields and the result table that the script touches
 		Main.sockField = document.getElementById("sockets") as HTMLTextAreaElement;
@@ -55,16 +55,19 @@ class Main {
 		Main.blueField = document.getElementById("blue") as HTMLTextAreaElement;
 		Main.table = document.getElementById("resultbody") as HTMLTableSectionElement;
 		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
+
+		console.log(Main.sockField);
+		console.log(Main.tableWhole);
 		
 		// Fill in the table with sufficient blank fields
 		var i: number = 0;
 		var j: number;
 		for (let r in recipes) {
-			var tr: HTMLTableRowElement = document.createElement("tablerow") as HTMLTableRowElement;
+			var tr: HTMLTableRowElement = document.createElement("tr") as HTMLTableRowElement;
 			var td: HTMLTableCellElement;
 			j = 6;
 			while (j > 0) {
-				td = document.createElement("tablecell") as HTMLTableCellElement;
+				td = document.createElement("td") as HTMLTableCellElement;
 				if (i < 4) {
 					td.innerHTML = "-";
 				}
@@ -136,7 +139,7 @@ class Main {
 			(row as HTMLElement).style.display = "table-row";
 			row.classList.toggle("best", mindex == j);
 			row.classList.remove("reverseStripe");
-			row = row.nextElementSibling as Element;
+			row = row.nextElementSibling;
 			++j;
 		}
 		while (row != null) { // Hide remaining rows
@@ -251,6 +254,7 @@ class Main {
 					return ((1 - maxOnColorChance) / 2) + maxOnColorChance * (X / (totalRequirements + 3 * X + C));
 				}
 			};
+			break;
 		case 2: // Dual requirement items, like daggers and carnal armour
 			requirementToChance = (requirement: number): number => {
 				if (requirement > 0) {
@@ -261,12 +265,14 @@ class Main {
 					return 1 - maxOnColorChance;
 				}
 			};
+			break;
 		case 3: // Tri-requirement items, like Atziri's Splendour
 			requirementToChance = (requirement: number): number => { 
 				// For all current things that have equal requirements, it should be 1/3 chance per color.
 				// There's no way to test how a 50 str/25 dex/100 int item behaves, so it's just, like, a guess.
 				return requirement / totalRequirements;
 			};
+			break;
 		}
 		
 		// Run the on the requirements to get the actual chances
@@ -314,6 +320,7 @@ class Main {
 		var sockets = new Colored(0, 0, 0);
 		var total = new Colored(0, 0, 0);
 		var i = 0;
+		var rerolls = 0;
 		while (i < 100000) {
 			// Roll each socket
 			var j = 0;
@@ -337,6 +344,10 @@ class Main {
 			
 			// If that was what we got last time...
 			if (currentSockets == lastSockets) {
+				rerolls++;
+				if (rerolls > 1000000) {
+					break; // Infinite loop protection if someone is providing an unrealistically high single requirement and single socket item.
+				}
 				continue; // Roll again.
 			}
 			
@@ -388,4 +399,10 @@ class Main {
 			// Note: the *2 in the exponents of the above are because we have to roll a permutation twice in a row before chromatic rerolls happen.
 		}
 	}
+}
+
+if (document.readyState === "loading") {
+	document.addEventListener("DOMContentLoaded", Main.main);
+} else {
+	Main.main();
 }
