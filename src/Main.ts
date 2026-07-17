@@ -55,9 +55,6 @@ export class Main {
 		Main.blueField = document.getElementById("blue") as HTMLTextAreaElement;
 		Main.table = document.getElementById("resultbody") as HTMLTableSectionElement;
 		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
-
-		console.log(Main.sockField);
-		console.log(Main.tableWhole);
 		
 		// Fill in the table with sufficient blank fields
 		var i: number = 0;
@@ -110,9 +107,6 @@ export class Main {
 	
 	private static updateTable(probabilities: Array<Probability>) : void {
 		var row: Element = Main.table.firstElementChild;
-		if (row == null) {
-			return;
-		}
 		
 		// Find the index of the best option
 		var mindex: number = 0;
@@ -128,6 +122,7 @@ export class Main {
 		}
 		
 		for (let p of probabilities) { // Fill in rows with the probability array
+			console.log(p);
 			i = 0;
 			var td: Element = row.firstElementChild;
 			while (td != null) {
@@ -158,12 +153,12 @@ export class Main {
 		while (th != null) {
 			var s: string = "";
 			switch (i) {
-				case 0: s = "Craft Type";
-				case 1: s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
-				case 2: s = "Success Chance";
-				case 3: s = "Average Attempts<br/><span class=\"tablesubtitle\">(mean)</span>";
-				case 4: s = "Cost per Try<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
-				case 5: s = "Std. Deviation<br/><span class=\"tablesubtitle\">(of attempts)</span>";
+				case 0: s = "Craft Type"; break;
+				case 1: s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>"; break;
+				case 2: s = "Success Chance"; break;
+				case 3: s = "Average Attempts<br/><span class=\"tablesubtitle\">(mean)</span>"; break;
+				case 4: s = "Cost per Try<br/><span class=\"tablesubtitle\">(in chromatics)</span>"; break;
+				case 5: s = "Std. Deviation<br/><span class=\"tablesubtitle\">(of attempts)</span>"; break;
 			}
 			th.classList.remove("SortTable_sorted");
 			th.classList.remove("SortTable_sorted_reverse");
@@ -177,7 +172,7 @@ export class Main {
 	}
 	
 	public static calculate(d: any = null) : void {
-		var probs:Array<Probability> = new Array<Probability>();
+		var probs: Array<Probability> = new Array<Probability>();
 		var error: boolean = false;
 		
 		// Read all the fields
@@ -189,12 +184,18 @@ export class Main {
 		var green: number = parseInt(Main.greenField.value);
 		var blue: number = parseInt(Main.blueField.value);
 		
-		if (str == null) str = 0;
-		if (dex == null) dex = 0;
-		if (int == null) int = 0;
+		if (isNaN(socks) || socks < 0) socks = 0;
+		if (isNaN(str) || str < 0) str = 0;
+		if (isNaN(dex) || dex < 0) dex = 0;
+		if (isNaN(int) || int < 0) int = 0;
+		if (isNaN(red) || red < 0) red = 0;
+		if (isNaN(green) || green < 0) green = 0;
+		if (isNaN(blue) || blue < 0) blue = 0;
+
+		console.log(str + " " + dex + " " + int);
 		
 		// Check validity, display error messages in silly ways
-		if(socks == null) {
+		if(socks == 0) {
 			socks = red + blue + green;
 			Main.sockField.value = "" + socks;
 		}
@@ -283,7 +284,7 @@ export class Main {
 	private static getProbabilities(requirements: Colored, desired: Colored, totalSockets: number) : Array<Probability> {
 		var probs = new Array<Probability>();
 		var colorChances = Main.getColorChances(requirements);
-		Main.simulateLotsOfChromatics(colorChances, totalSockets);
+		//Main.simulateLotsOfChromatics(colorChances, totalSockets);
 		
 		// For every recipe
 		for (let recipe of Main.recipes) {
