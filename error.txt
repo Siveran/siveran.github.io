@@ -1,0 +1,13 @@
+asset bundle.js 2.17 KiB [compared for emit] (name: main)
+./src/Main.ts 39 bytes [built] [code generated] [1 error]
+
+ERROR in ./src/Main.ts
+Module build failed (from ./node_modules/ts-loader/index.js):
+TypeError: Cannot read properties of undefined (reading 'fileExists')
+    at findConfigFile (C:\Users\Orange\Documents\Projects\Vorici\siveran.github.io\node_modules\ts-loader\dist\config.js:105:30)
+    at getConfigFile (C:\Users\Orange\Documents\Projects\Vorici\siveran.github.io\node_modules\ts-loader\dist\config.js:43:28)
+    at successfulTypeScriptInstance (C:\Users\Orange\Documents\Projects\Vorici\siveran.github.io\node_modules\ts-loader\dist\instances.js:117:58)
+    at getTypeScriptInstance (C:\Users\Orange\Documents\Projects\Vorici\siveran.github.io\node_modules\ts-loader\dist\instances.js:86:12)
+    at Object.loader (C:\Users\Orange\Documents\Projects\Vorici\siveran.github.io\node_modules\ts-loader\dist\index.js:59:67)
+
+webpack 5.108.4 compiled with 1 error in 109 ms

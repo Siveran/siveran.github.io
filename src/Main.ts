@@ -1,40 +1,29 @@
-package ;
-
-import js.Browser;
-import js.html.Element;
-import js.html.EventListener;
-import js.html.HtmlElement;
-import js.html.Node;
-import js.html.TableCellElement;
-import js.html.TableElement;
-import js.html.TableRowElement;
-import js.html.TableSectionElement;
-import js.html.TextAreaElement;
-import js.Lib;
+import { Recipe } from "./Recipe";
+import { Probability } from "./Probability";
+import { Colored } from "./Colored";
+import { Utils } from "./Utils";
 
 /**
- * A chromatic calculator that includes partial coloring and Vorici recipes,
- * for Path of Exile: Forsaken Masters.
+ * A chromatic calculator that includes omen of trichromatism and crafting bench recipes,
+ * for Path of Exile: Curse of the Allflame.
  * @author Siveran
  */
-
-@:expose
 class Main {
-	static var recipes:Array<Recipe>;
-	static var sockField:TextAreaElement;
-	static var strField:TextAreaElement;
-	static var dexField:TextAreaElement;
-	static var intField:TextAreaElement;
-	static var redField:TextAreaElement;
-	static var greenField:TextAreaElement;
-	static var blueField:TextAreaElement;
-	static var table:TableSectionElement;
-	static var tableWhole:TableElement;
-	static var recycle:TableSectionElement;
+	static recipes: Recipe[];
+	static sockField: HTMLTextAreaElement;
+	static strField: HTMLTextAreaElement;
+	static dexField: HTMLTextAreaElement;
+	static intField: HTMLTextAreaElement;
+	static redField: HTMLTextAreaElement;
+	static greenField: HTMLTextAreaElement;
+	static blueField: HTMLTextAreaElement;
+	static table: HTMLTableSectionElement;
+	static tableWhole: HTMLTableElement;
+	static recycle: HTMLTableSectionElement;
 	
-	static function main() : Void {
-		// All the vorici recipes, plus a regular chrome
-		recipes = new Array<Recipe>();
+	static main(): void {
+		// All the ways to change the socket colors
+		let recipes: Recipe[] = [];
 		recipes.push(new Recipe(0, 0, 0, 1, 0, "Drop Rate"));
 		recipes.push(new Recipe(0, 0, 0, 1, 0, "Chromatic"));
 		recipes.push(new Recipe(1, 0, 0, 4, 2));
@@ -57,25 +46,25 @@ class Main {
 		recipes.push(new Recipe(0, 1, 2, 100, 7));
 		
 		// All the input fields and the result table that the script touches
-		sockField = cast Browser.document.getElementById("sockets");
-		strField = cast Browser.document.getElementById("str");
-		dexField = cast Browser.document.getElementById("dex");
-		intField = cast Browser.document.getElementById("int");
-		redField = cast Browser.document.getElementById("red");
-		greenField = cast Browser.document.getElementById("green");
-		blueField = cast Browser.document.getElementById("blue");
-		table = cast Browser.document.getElementById("resultbody");
-		tableWhole = cast Browser.document.getElementById("result");
+		Main.sockField = document.getElementById("sockets") as HTMLTextAreaElement;
+		Main.strField = document.getElementById("str") as HTMLTextAreaElement;
+		Main.dexField = document.getElementById("dex") as HTMLTextAreaElement;
+		Main.intField = document.getElementById("int") as HTMLTextAreaElement;
+		Main.redField = document.getElementById("red") as HTMLTextAreaElement;
+		Main.greenField = document.getElementById("green") as HTMLTextAreaElement;
+		Main.blueField = document.getElementById("blue") as HTMLTextAreaElement;
+		Main.table = document.getElementById("resultbody") as HTMLTableSectionElement;
+		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
 		
 		// Fill in the table with sufficient blank fields
-		var i:Int = 0;
-		var j:Int;
-		for (r in recipes) {
-			var tr:TableRowElement = Browser.document.createTableRowElement();
-			var td:TableCellElement;
+		var i: number = 0;
+		var j: number;
+		for (let r in recipes) {
+			var tr: HTMLTableRowElement = document.createElement("tablerow") as HTMLTableRowElement;
+			var td: HTMLTableCellElement;
 			j = 6;
 			while (j > 0) {
-				td = Browser.document.createTableCellElement();
+				td = document.createElement("tablecell") as HTMLTableCellElement;
 				if (i < 4) {
 					td.innerHTML = "-";
 				}
@@ -87,41 +76,47 @@ class Main {
 				tr.style.display = "none";
 			}
 			tr.classList.add("prob");
-			table.appendChild(tr);
+			Main.table.appendChild(tr);
 			++i;
 		}
 		
 		// Attach an event listener
-		Browser.document.getElementById("calcButton").onclick = calculate;
+		let calcButton = document.getElementById("calcButton");
+		if (calcButton != null) {
+			calcButton.onclick = Main.calculate;
+		}
 	}
 	
-	public static function flipTableStripes() : Void {
-		var i:Int = 0;
-		var tr:Element = table.firstElementChild;
+	public static flipTableStripes() : void {
+		var i: number = 0;
+		var tr: Element = Main.table.firstElementChild;
 		while (tr != null) {
 			++i;
-			if (tr.firstElementChild.innerHTML != "") {
+			if (tr.firstElementChild != null && tr.firstElementChild.innerHTML != "") {
 				tr = null;
 			} else {
 				tr = tr.nextElementSibling;
 			}
 		}
-		tr = table.firstElementChild;
+		tr = Main.table.firstElementChild;
 		while (tr != null) {
 			tr.classList.toggle("reverseStripe", i % 2 == 0);
 			tr = tr.nextElementSibling;
 		}
 	}
 	
-	private static function updateTable(probs:Array<Probability>) : Void {
-		var row:Element = table.firstElementChild;
+	private static updateTable(probabilities: Array<Probability>) : void {
+		var row: Element = Main.table.firstElementChild;
+		if (row == null) {
+			return;
+		}
 		
 		// Find the index of the best option
-		var mindex:Int = 0;
-		var min:Float = 0;
-		var i:Int = 0;
-		var j:Int = 0;
-		for (p in probs) {
+		var mindex: number = 0;
+		var min: number = 0;
+		var i: number = 0;
+		var j: number = 0;
+		for (let p of probabilities) {
 			if (p.favg > 0 && (min == 0 || min > p.favg )) {
 				mindex = i;
 				min = p.favg;
@@ -129,36 +124,36 @@ class Main {
 			++i;
 		}
 		
-		for (p in probs) { // Fill in rows with the probability array
+		for (let p of probabilities) { // Fill in rows with the probability array
 			i = 0;
-			var td:Element = row.firstElementChild;
+			var td: Element = row.firstElementChild;
 			while (td != null) {
 				td.innerHTML = p.get(i);
 				td = td.nextElementSibling;
 				++i;
 			}
 			//row.style.visibility = "visible";
-			row.style.display = "table-row";
+			(row as HTMLElement).style.display = "table-row";
 			row.classList.toggle("best", mindex == j);
 			row.classList.remove("reverseStripe");
-			row = row.nextElementSibling;
+			row = row.nextElementSibling as Element;
 			++j;
 		}
 		while (row != null) { // Hide remaining rows
 			//row.style.visibility = "collapse";
-			var td:Element = row.firstElementChild;
+			var td: Element = row.firstElementChild;
 			while (td != null) {
 				td.innerHTML = "";
 				td = td.nextElementSibling;
 			}
-			row.style.display = "none";
+			(row as HTMLElement).style.display = "none";
 			row.classList.remove("best");
 			row = row.nextElementSibling;
 		}
-		var th:Element = tableWhole.tHead.firstElementChild.firstElementChild;
+		var th: Element = Main.tableWhole?.tHead?.firstElementChild?.firstElementChild;
 		i = 0;
 		while (th != null) {
-			var s:String = "";
+			var s: string = "";
 			switch (i) {
 				case 0: s = "Craft Type";
 				case 1: s = "Average Cost<br/><span class=\"tablesubtitle\">(in chromatics)</span>";
@@ -174,22 +169,22 @@ class Main {
 			++i;
 		}
 		// I don't know why this has to be called twice in order to support reversal.
-		SortTable.makeSortable(tableWhole);
-		SortTable.makeSortable(tableWhole);
+		SortTable.makeSortable(Main.tableWhole);
+		SortTable.makeSortable(Main.tableWhole);
 	}
 	
-	public static function calculate(d:Dynamic = null) : Void {
+	public static calculate(d: any = null) : void {
 		var probs:Array<Probability> = new Array<Probability>();
-		var error:Bool = false;
+		var error: boolean = false;
 		
 		// Read all the fields
-		var socks:Int = Std.parseInt(sockField.value);
-		var str:Int = Std.parseInt(strField.value);
-		var dex:Int = Std.parseInt(dexField.value);
-		var int:Int = Std.parseInt(intField.value);
-		var red:Int = Std.parseInt(redField.value);
-		var green:Int = Std.parseInt(greenField.value);
-		var blue:Int = Std.parseInt(blueField.value);
+		var socks: number = parseInt(Main.sockField.value);
+		var str: number = parseInt(Main.strField.value);
+		var dex: number = parseInt(Main.dexField.value);
+		var int: number = parseInt(Main.intField.value);
+		var red: number = parseInt(Main.redField.value);
+		var green: number = parseInt(Main.greenField.value);
+		var blue: number = parseInt(Main.blueField.value);
 		
 		if (str == null) str = 0;
 		if (dex == null) dex = 0;
@@ -198,7 +193,7 @@ class Main {
 		// Check validity, display error messages in silly ways
 		if(socks == null) {
 			socks = red + blue + green;
-			sockField.value = Std.string(socks);
+			Main.sockField.value = "" + socks;
 		}
 		if (socks <= 0 || socks > 6) {
 			error = true;
@@ -219,30 +214,30 @@ class Main {
 		
 		// No problems! Move along and do the real work.
 		if (!error) {
-			var requirements = new Colored<Int>(str, dex, int);
-			var desiredSockets = new Colored<Int>(red, green, blue);
-			probs = getProbabilities(requirements, desiredSockets, socks);
+			var requirements = new Colored(str, dex, int);
+			var desiredSockets = new Colored(red, green, blue);
+			probs = Main.getProbabilities(requirements, desiredSockets, socks);
 		}
 		
 		// Push results to HTML
-		updateTable(probs);
+		Main.updateTable(probs);
 	}
 	
 	// Get the chances for colors based on requirements
-	private static function getColorChances(requirements:Colored<Int>): Colored<Float> {
+	private static getColorChances(requirements: Colored): Colored {
 		// Constants! These are the hardest 3 numbers to find.
-		var X:Int = 5; // The X in [(Requirement + X + C) / (Requirement + 3X + C)] for on-color mono-requirement chances
-		var C:Int = 5; // The C in the above. Off-colors don't get the +C in the numerator, but do get X.
-		var maxOnColorChance:Float = 0.9; // What the on-color chance appears to approach with extremely high requirements.
+		var X: number = 5; // The X in [(Requirement + X + C) / (Requirement + 3X + C)] for on-color mono-requirement chances
+		var C: number = 5; // The C in the above. Off-colors don't get the +C in the numerator, but do get X.
+		var maxOnColorChance: number = 0.9; // What the on-color chance appears to approach with extremely high requirements.
 		
-		var totalRequirements:Float = requirements.total();
+		var totalRequirements: number = requirements.total();
 		var numberOfRequirements = requirements.countNonZero();
-		var requirementToChance: Int -> Float = null;
+		var requirementToChance: (req: number) => number;
 		
 		// Use a different formula based on how many requirements there are
 		switch (numberOfRequirements) {
 		case 1: // Single requirement items, like prophecy wands and vaal regalia
-			requirementToChance = function (requirement: Int) : Float { 
+			requirementToChance = (requirement: number): number => { 
 				if (requirement > 0) {
 					// The real meat.
 					// The chance for rolling an on-color socket for a mono-requirement item is
@@ -257,7 +252,7 @@ class Main {
 				}
 			};
 		case 2: // Dual requirement items, like daggers and carnal armour
-			requirementToChance = function (requirement: Int) : Float {
+			requirementToChance = (requirement: number): number => {
 				if (requirement > 0) {
 					// If on-color, split the maxOnColorChance, weighted based on the requirements.
 					return maxOnColorChance * requirement / totalRequirements;
@@ -266,39 +261,38 @@ class Main {
 					return 1 - maxOnColorChance;
 				}
 			};
-		case 3: // Tri-requirement items, like Atziri's Splendour and things I'll never have because I'm bad at racing
-			requirementToChance = function (requirement: Int) : Float { 
+		case 3: // Tri-requirement items, like Atziri's Splendour
+			requirementToChance = (requirement: number): number => { 
 				// For all current things that have equal requirements, it should be 1/3 chance per color.
 				// There's no way to test how a 50 str/25 dex/100 int item behaves, so it's just, like, a guess.
 				return requirement / totalRequirements;
 			};
 		}
 		
-		// Run the function on the requirements to get the actual chances
+		// Run the on the requirements to get the actual chances
 		return requirements.map(requirementToChance);
 	}
 	
-	// Get the probabilities for each Vorici recipe and chromatic orbs
-	private static function getProbabilities(requirements: Colored<Int>, desired: Colored<Int>, totalSockets: Int) : Array<Probability> {
+	// Get the probabilities for each recipe
+	private static getProbabilities(requirements: Colored, desired: Colored, totalSockets: number) : Array<Probability> {
 		var probs = new Array<Probability>();
-		var colorChances = getColorChances(requirements);
-		simulateLotsOfChromatics(colorChances, totalSockets);
+		var colorChances = Main.getColorChances(requirements);
+		Main.simulateLotsOfChromatics(colorChances, totalSockets);
 		
-		// For every Vorici recipe (plus just chroming yourself)
-		for (recipe in recipes) {
+		// For every recipe
+		for (let recipe of Main.recipes) {
 			// Recipe sanity check (you won't use 3R when you want BBBBBB)
 			if (recipe.red <= desired.red && recipe.green <= desired.green && recipe.blue <= desired.blue) {
 				// Subtract the forced sockets out; we don't need to consider them.
-				// Unvoricified Desires are the sockets that haven't been guaranteed by Vorici that we still care about.
-				// I highly enjoy making up words.
-				var unvoricifiedDesires = new Colored<Int>(desired.red - recipe.red, desired.green - recipe.green, desired.blue - recipe.blue);
-				var howManySocketsDoWeNotCareAbout:Int = totalSockets - desired.total();
+				// Unvoricified Desires are the sockets that haven't been guaranteed by the recipe that we still care about.
+				var unvoricifiedDesires = new Colored(desired.red - recipe.red, desired.green - recipe.green, desired.blue - recipe.blue);
+				var howManySocketsDoWeNotCareAbout: number = totalSockets - desired.total();
 				
 				// BRUTE FORCE
-				var chance = multinomial(colorChances, unvoricifiedDesires, howManySocketsDoWeNotCareAbout);
+				var chance = Main.multinomial(colorChances, unvoricifiedDesires, howManySocketsDoWeNotCareAbout);
 				if (recipe.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
-					var chanceForChromaticCollision = calcChromaticBonus(colorChances, desired, totalSockets);
+					var chanceForChromaticCollision = Main.calcChromaticBonus(colorChances, desired, totalSockets);
 					chance /= 1 - chanceForChromaticCollision;
 				}
 				
@@ -306,7 +300,7 @@ class Main {
 					recipe.description == "Drop Rate" ? "-" : Utils.floatToPrecisionString(recipe.cost / chance, 1)/* + " <img src=\"chromsmall.png\"\\>"*/,
 					Utils.floatToPercent(chance),
 					Utils.floatToPrecisionString(1 / chance, 1),
-					recipe.description == "Drop Rate" ? "-" : Std.string(recipe.cost)/* + " <img src=\"chromsmall.png\"\\>"*/,
+					recipe.description == "Drop Rate" ? "-" : "" + recipe.cost/* + " <img src=\"chromsmall.png\"\\>"*/,
 					Utils.floatToPrecisionString(Math.sqrt(Utils.clamp((1 - chance), 0, 1) / (chance * chance)), 2),
 					recipe.cost/chance));
 			}
@@ -315,10 +309,10 @@ class Main {
 		return probs;
 	}
 	
-	private static function simulateLotsOfChromatics(colorChances: Colored<Float>, totalSockets: Int) {
+	private static simulateLotsOfChromatics(colorChances: Colored, totalSockets: number) {
 		var lastSockets = "";
-		var sockets = new Colored<Int>(0, 0, 0);
-		var total = new Colored<Int>(0, 0, 0);
+		var sockets = new Colored(0, 0, 0);
+		var total = new Colored(0, 0, 0);
 		var i = 0;
 		while (i < 100000) {
 			// Roll each socket
@@ -351,22 +345,22 @@ class Main {
 			lastSockets = currentSockets;
 			i++;
 		}
-		trace(total.toString());
+		//trace(total.toString());
 	}
 	
 	// Determines the chance of getting what you want based on the individual color chances.
-	// Brute force a cumulative probability mass function thing for a multinomial distribution.
+	// Brute force a cumulative probability mass thing for a multinomial distribution.
 	// I do this because there's a simple PMF for specific ordered results, but we want a range of results,
 	// because we really don't care about some sockets. RRRB, RRRG, RRRR are all valid if you want RRR.
 	// But not caring is hard. BRUTE HARD.
-	private static function multinomial(colorChances: Colored<Float>, desired: Colored<Int>, free:Int, pos:Int = 1) : Float {
+	private static multinomial(colorChances: Colored, desired: Colored, free: number, pos: number = 1) : number {
 		if (free > 0) {
-			// GENIES TAKE THE WHEEL
+			// tell a genie to do it
 			// pos is the position in the recursive tree and keeps track of history.
 			// It prevents us from calculating the unordered chance for RGGB and RGBG and adding them, for example.
-			return (pos <= 1 ? multinomial(colorChances, new Colored<Int>(desired.red + 1, desired.green, desired.blue), free - 1, 1) : 0) +
-				(pos <= 2 ? multinomial(colorChances, new Colored<Int>(desired.red, desired.green + 1, desired.blue), free - 1, 2) : 0) +
-				multinomial(colorChances, new Colored<Int>(desired.red, desired.green, desired.blue + 1), free - 1, 3);
+			return (pos <= 1 ? Main.multinomial(colorChances, new Colored(desired.red + 1, desired.green, desired.blue), free - 1, 1) : 0) +
+				(pos <= 2 ? Main.multinomial(colorChances, new Colored(desired.red, desired.green + 1, desired.blue), free - 1, 2) : 0) +
+				Main.multinomial(colorChances, new Colored(desired.red, desired.green, desired.blue + 1), free - 1, 3);
 		} else {
 			// oh i'm the genie
 			return (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue)))
@@ -375,18 +369,18 @@ class Main {
 	}
 	
 	// Because chromatic orbs can't get the same result multiple times in a row, we find the average repeat chance.
-	private static function calcChromaticBonus(colorChances: Colored<Float>, desired: Colored<Int>, free:Int, rolled: Colored<Int> = null, pos:Int = 1) : Float {
+	private static calcChromaticBonus(colorChances: Colored, desired: Colored, free: number, rolled: Colored = null, pos: number = 1) : number {
 		if (rolled == null) {
-			rolled = new Colored<Int>(0, 0, 0);
+			rolled = new Colored(0, 0, 0);
 		}
 		
 		if (rolled.red >= desired.red && rolled.green >= desired.green && rolled.blue >= desired.blue) {
 			return 0; // We do this because you (hopefully) don't reroll it again if you have the desired colors, so there's no chromatic bonus from successes.
 		} else if (free > 0) {
-			// GENIES TAKE THE WHEEL
-			return (pos <= 1 ? calcChromaticBonus(colorChances, desired, free - 1, new Colored<Int>(rolled.red + 1, rolled.green, rolled.blue), 1) : 0) +
-				(pos <= 2 ? calcChromaticBonus(colorChances, desired, free - 1, new Colored<Int>(rolled.red, rolled.green + 1, rolled.blue), 2) : 0) +
-				calcChromaticBonus(colorChances, desired, free - 1, new Colored<Int>(rolled.red, rolled.green, rolled.blue + 1), 3);
+			// tell a genie to do it
+			return (pos <= 1 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red + 1, rolled.green, rolled.blue), 1) : 0) +
+				(pos <= 2 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green + 1, rolled.blue), 2) : 0) +
+				Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green, rolled.blue + 1), 3);
 		} else {
 			// oh i'm the genie
 			return (Utils.factorial(rolled.total()) / (Utils.factorial(rolled.red) * Utils.factorial(rolled.green) * Utils.factorial(rolled.blue)))
