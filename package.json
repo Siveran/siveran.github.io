@@ -11,10 +11,11 @@
   },
   "name": "siveran.github.io",
   "version": "1.0.0",
-  "description": "VoriciCalc\r ==========",
+  "description": "Vorici Calculator",
   "main": "PoEChromaticCalc.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack && cleancss -o poestyle.min.css poestyle.css",
+    "css": "cleancss -o poestyle.min.css poestyle.css"
   },
   "repository": {
     "type": "git",
@@ -22,7 +23,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "CC0",
   "bugs": {
     "url": "https://github.com/Siveran/siveran.github.io/issues"
   },

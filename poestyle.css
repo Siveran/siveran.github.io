@@ -193,9 +193,9 @@ button {
 	padding-top: 5px;
 	padding-bottom: 5px;
 	cursor: pointer;
-	webkit-transition: background-color 300ms ease-out;
-	-moz-transition: background-color 300ms ease-out;
-	transition: background-color 300ms ease-out;
+	-webkit-transition: background-color 200ms ease-out;
+	-moz-transition: background-color 200ms ease-out;
+	transition: background-color 200ms ease-out;
 }
 
 button:hover {
@@ -244,7 +244,7 @@ span.tablesubtitle {
 
 table.sortable thead th {
     cursor: pointer;
-	webkit-transition: background-color 300ms ease-out;
+	-webkit-transition: background-color 300ms ease-out;
 	-moz-transition: background-color 300ms ease-out;
 	transition: background-color 300ms ease-out;
 }

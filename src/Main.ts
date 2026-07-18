@@ -135,7 +135,6 @@ export class Main {
 		}
 		
 		for (let p of probabilities) { // Fill in rows with the probability array
-			console.log(p);
 			i = 0;
 			var td: Element = row.firstElementChild;
 			while (td != null) {
@@ -343,13 +342,14 @@ export class Main {
 				
 				// BRUTE FORCE
 				//var chance = Main.multinomial(colorChances, unvoricifiedDesires, howManySocketsDoWeNotCareAbout);
-				var chance = Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, recipe.nonwhite);
+				var chance = Main.multinomial(dilutedChances, undilutedChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, recipe.nonwhite);
 
 				if (recipe.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
-					var chanceForChromaticCollision = Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1);
+					var chanceForChromaticCollision = Main.calcChromaticBonus(dilutedChances, undilutedChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1);
 					console.log(chanceForChromaticCollision);
-					chance /= 1 - chanceForChromaticCollision;
+					console.log(chance);
+					chance = 1 - ((1 - chance) * (1 - chanceForChromaticCollision));
 				}
 				
 				// Is this recipe compatible with the version of the game we're trying to work with?
@@ -411,106 +411,82 @@ export class Main {
 		//trace(total.toString());
 	}
 	
+	// Because chromatic orbs can't get the same result multiple times in a row, we find the average repeat chance.
+	// TODO: This needs to be tested in 3.29. It might not apply, anymore!
+	private static calcChromaticBonus(fullChances: Colored, rgbOnlyChances: Colored, target: Colored, free: number, freeBranch: number = 1, rgbOnly: number = 0, rgbOnlyBranch: number = 1, rgbOnlyTarget: Colored = new Colored(0, 0, 0, 0)) : number {
+		if (free > 0) {
+			// Tell a genie to do it
+			return (freeBranch <= 1 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red + 1, target.green, target.blue, target.white), free - 1, 1, rgbOnly, 1, rgbOnlyTarget) : 0) +
+				(freeBranch <= 2 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green + 1, target.blue, target.white), free - 1, 2, rgbOnly, 1, rgbOnlyTarget) : 0) +
+				(freeBranch <= 3 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue + 1, target.white), free - 1, 3, rgbOnly, 1, rgbOnlyTarget) : 0) +
+				Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue, target.white + 1), free - 1, 4, rgbOnly);
+		} else if (rgbOnly > 0) {
+			// Try all possibilities of guaranteed colored socket assignments.
+			// For example, if a 3S item has desired colors of 1R1B and you're using a chromatic orb, the guaranteed non-white might be assigned red, green, or blue.
+			return (rgbOnlyBranch <= 1 && target.red > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red - 1, target.green, target.blue, target.white), free - 1, 0, rgbOnly - 1, 1, new Colored(rgbOnlyTarget.red + 1, rgbOnlyTarget.green, rgbOnlyTarget.blue, rgbOnlyTarget.white)) : 0) +
+				(rgbOnlyBranch <= 2 && target.green > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green - 1, target.blue, target.white), free - 1, 0, rgbOnly - 1, 2, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green + 1, rgbOnlyTarget.blue, rgbOnlyTarget.white)) : 0) +
+				(rgbOnlyBranch <= 3 && target.blue > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue - 1, target.white), free - 1, 0, rgbOnly - 1, 3, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green, rgbOnlyTarget.blue + 1, rgbOnlyTarget.white)) : 0);
+		} else {
+			// oh i'm the genie
+			return (Utils.factorial(rgbOnlyTarget.total()) / (Utils.factorial(rgbOnlyTarget.red) * Utils.factorial(rgbOnlyTarget.green) * Utils.factorial(rgbOnlyTarget.blue)))
+			    * Math.pow(rgbOnlyChances.red, rgbOnlyTarget.red * 2) * Math.pow(rgbOnlyChances.green, rgbOnlyTarget.green * 2) * Math.pow(rgbOnlyChances.blue, rgbOnlyTarget.blue * 2)
+			    * (Utils.factorial(target.total() + rgbOnlyTarget.total()) / (Utils.factorial(target.red + rgbOnlyTarget.red) * Utils.factorial(target.green + rgbOnlyTarget.green) * Utils.factorial(target.blue + rgbOnlyTarget.blue) * Utils.factorial(target.white + rgbOnlyTarget.white)))
+				* Math.pow(fullChances.red, target.red * 2) * Math.pow(fullChances.green, target.green * 2) * Math.pow(fullChances.blue, target.blue * 2) * Math.pow(fullChances.white, target.white * 2)
+				* (Utils.factorial(target.red + rgbOnlyTarget.red) * Utils.factorial(target.green + rgbOnlyTarget.green) * Utils.factorial(target.blue + rgbOnlyTarget.blue) * Utils.factorial(target.white + rgbOnlyTarget.white)) / (Utils.factorial(target.total() + rgbOnlyTarget.total()));
+		}
+	}
+
 	// Determines the chance of getting what you want based on the individual color chances.
 	// Brute force a cumulative probability mass thing for a multinomial distribution.
 	// I do this because there's a simple PMF for specific ordered results, but we want a range of results,
-	// because we really don't care about some sockets. RRRB, RRRG, RRRR are all valid if you want RRR.
-	// But not caring is hard. BRUTE HARD.
-	private static multinomial(colorChances: Colored, desired: Colored, free: number, pos: number = 1) : number {
-		if (free > 0) {
-			// tell a genie to do it
-			// pos is the position in the recursive tree and keeps track of history.
-			// It prevents us from calculating the unordered chance for RGGB and RGBG and adding them, for example.
-			return (pos <= 1 ? Main.multinomial(colorChances, new Colored(desired.red + 1, desired.green, desired.blue, desired.white), free - 1, 1) : 0) +
-				(pos <= 2 ? Main.multinomial(colorChances, new Colored(desired.red, desired.green + 1, desired.blue, desired.white), free - 1, 2) : 0) +
-				(pos <= 3 ? Main.multinomial(colorChances, new Colored(desired.red, desired.green, desired.blue + 1, desired.white), free - 1, 3) : 0) +
-				Main.multinomial(colorChances, new Colored(desired.red, desired.green, desired.blue, desired.white + 1), free - 1, 4);
-		} else {
-			// oh i'm the genie
-			return (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue) * Utils.factorial(desired.white)))
-				* Math.pow(colorChances.red, desired.red) * Math.pow(colorChances.green, desired.green) * Math.pow(colorChances.blue, desired.blue) * Math.pow(colorChances.white, desired.white);
-		}
-	}
-	
-	// Because chromatic orbs can't get the same result multiple times in a row, we find the average repeat chance.
-	// TODO: This needs to be tested in 3.29. It might not apply, anymore!
-	// If it does still apply, we need to add the nonWhiteGuaranteed logic to this function.
-	private static calcChromaticBonus(colorChances: Colored, desired: Colored, free: number, rolled: Colored = null, pos: number = 1) : number {
-		if (rolled == null) {
-			rolled = new Colored(0, 0, 0, 0);
-		}
-		
-		if (rolled.red >= desired.red && rolled.green >= desired.green && rolled.blue >= desired.blue && rolled.white >= desired.white) {
-			return 0; // We do this because you (hopefully) don't reroll it again if you have the desired colors, so there's no chromatic bonus from successes.
-		} else if (free > 0) {
-			// tell a genie to do it
-			return (pos <= 1 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red + 1, rolled.green, rolled.blue, rolled.white), 1) : 0) +
-				(pos <= 2 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green + 1, rolled.blue, rolled.white), 2) : 0) +
-				(pos <= 3 ? Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green, rolled.blue + 1, rolled.white), 3) : 0) +
-				Main.calcChromaticBonus(colorChances, desired, free - 1, new Colored(rolled.red, rolled.green, rolled.blue, rolled.white + 1), 4);
-		} else {
-			// oh i'm the genie
-			return (Utils.factorial(rolled.total()) / (Utils.factorial(rolled.red) * Utils.factorial(rolled.green) * Utils.factorial(rolled.blue) * Utils.factorial(rolled.white)))
-				* Math.pow(colorChances.red, rolled.red * 2) * Math.pow(colorChances.green, rolled.green * 2) * Math.pow(colorChances.blue, rolled.blue * 2) * Math.pow(colorChances.white, rolled.white * 2);
-			// Note: the *2 in the exponents of the above are because we have to roll a permutation twice in a row before chromatic rerolls happen.
-		}
-	}
-
-	private static calcChromaticBonusNonWhiteGuaranteed(dilutedChances: Colored, undilutedChances: Colored, desired: Colored, free: number, freeBranch: number = 1, guaranteedNonWhite: number = 0, guaranteeBranch: number = 1, guaranteedDesired: Colored = new Colored(0, 0, 0, 0)) : number {
-		if (free > 0) {
-			// Tell a genie to do it
-			return (freeBranch <= 1 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red + 1, desired.green, desired.blue, desired.white), free - 1, 1, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
-				(freeBranch <= 2 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green + 1, desired.blue, desired.white), free - 1, 2, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
-				(freeBranch <= 3 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue + 1, desired.white), free - 1, 3, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
-				Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue, desired.white + 1), free - 1, 4, guaranteedNonWhite);
-		} else if (guaranteedNonWhite > 0) {
-			// Try all possibilities of guaranteed colored socket assignments.
-			// For example, if a 3S item has desired colors of 1R1B and you're using a chromatic orb, the guaranteed non-white might be assigned red, green, or blue.
-			return (guaranteeBranch <= 1 && desired.red > 0 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red - 1, desired.green, desired.blue, desired.white), free - 1, 0, guaranteedNonWhite - 1, 1, new Colored(guaranteedDesired.red + 1, guaranteedDesired.green, guaranteedDesired.blue, guaranteedDesired.white)) : 0) +
-				(guaranteeBranch <= 2 && desired.green > 0 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green - 1, desired.blue, desired.white), free - 1, 0, guaranteedNonWhite - 1, 2, new Colored(guaranteedDesired.red, guaranteedDesired.green + 1, guaranteedDesired.blue, guaranteedDesired.white)) : 0) +
-				(guaranteeBranch <= 3 && desired.blue > 0 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue - 1, desired.white), free - 1, 0, guaranteedNonWhite - 1, 3, new Colored(guaranteedDesired.red, guaranteedDesired.green, guaranteedDesired.blue + 1, guaranteedDesired.white)) : 0);
-		} else {
-			console.log("Guaranteed Desired: " + guaranteedDesired.toString());
-			console.log("Desired: " + desired.toString());
-			console.log("Guaranteed Permutations: " + (Utils.factorial(guaranteedDesired.total()) / (Utils.factorial(guaranteedDesired.red) * Utils.factorial(guaranteedDesired.green) * Utils.factorial(guaranteedDesired.blue))));
-			console.log("Guaranteed Repeat Chance: " + Math.pow(undilutedChances.red, guaranteedDesired.red * 2) * Math.pow(undilutedChances.green, guaranteedDesired.green * 2) * Math.pow(undilutedChances.blue, guaranteedDesired.blue * 2));
-			console.log("Desired Permutations: " + (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue) * Utils.factorial(desired.white))));
-			console.log("Desired Repeat Chance: " + Math.pow(dilutedChances.red, desired.red * 2) * Math.pow(dilutedChances.green, desired.green * 2) * Math.pow(dilutedChances.blue, desired.blue * 2) * Math.pow(dilutedChances.white, desired.white * 2));
-			console.log("Shuffle Chance: " + (Utils.factorial(desired.red + guaranteedDesired.red) * Utils.factorial(desired.green + guaranteedDesired.green) * Utils.factorial(desired.blue + guaranteedDesired.blue) * Utils.factorial(desired.white + guaranteedDesired.white)) / (Utils.factorial(desired.total() + guaranteedDesired.total())));
-			console.log("--------------------------------------------------------------------------------");
-
-			// oh i'm the genie
-			return (Utils.factorial(guaranteedDesired.total()) / (Utils.factorial(guaranteedDesired.red) * Utils.factorial(guaranteedDesired.green) * Utils.factorial(guaranteedDesired.blue)))
-			    * Math.pow(undilutedChances.red, guaranteedDesired.red * 2) * Math.pow(undilutedChances.green, guaranteedDesired.green * 2) * Math.pow(undilutedChances.blue, guaranteedDesired.blue * 2)
-			    * (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue) * Utils.factorial(desired.white)))
-				* Math.pow(dilutedChances.red, desired.red * 2) * Math.pow(dilutedChances.green, desired.green * 2) * Math.pow(dilutedChances.blue, desired.blue * 2) * Math.pow(dilutedChances.white, desired.white * 2)
-				* (Utils.factorial(desired.red + guaranteedDesired.red) * Utils.factorial(desired.green + guaranteedDesired.green) * Utils.factorial(desired.blue + guaranteedDesired.blue) * Utils.factorial(desired.white + guaranteedDesired.white)) / (Utils.factorial(desired.total() + guaranteedDesired.total()));
-		}
-	}
-
-	// For chromatic orbs (guaranteed 1 non-white socket) and crafting bench recipes (guaranteed 2-4 non-white sockets), find the chance of impossible outcomes
-	private static nonWhiteGuaranteedMultinomial(dilutedChances: Colored, undilutedChances: Colored, desired: Colored, free: number, freeBranch: number = 1, guaranteedNonWhite: number = 0, guaranteeBranch: number = 1, guaranteedDesired: Colored = new Colored(0, 0, 0, 0)) : number {
+	// because we really don't care about some sockets. RRRB, RRRG, RRRR, and RRRW are all valid if you want RRR.
+	// Sum the chances of all of them
+	private static multinomial(fullChances: Colored, rgbOnlyChances: Colored, target: Colored, free: number, freeBranch: number = 1, rgbOnly: number = 0, rgbOnlyBranch: number = 1, rgbOnlyTarget: Colored = new Colored(0, 0, 0, 0)) : number {
 		if (free > 0) {
 			// Try all possibilities of FINAL socket colors that include the desired socket colors.
 			// For example, if a 3S item has desired colors of 1R1B, allow 1R2B, 2R1B, 1R1B1W, and 1R1B1G.
 			// pos is the position in the recursive tree and keeps track of history.
 			// It prevents us from calculating the unordered chance for RGGB and RGBG and adding them, for example.
-			return (freeBranch <= 1 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red + 1, desired.green, desired.blue, desired.white), free - 1, 1, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
-				(freeBranch <= 2 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green + 1, desired.blue, desired.white), free - 1, 2, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
-				(freeBranch <= 3 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue + 1, desired.white), free - 1, 3, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
-				Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue, desired.white + 1), free - 1, 4, guaranteedNonWhite);
-		} else if (guaranteedNonWhite > 0) {
+			return (freeBranch <= 1 ? Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red + 1, target.green, target.blue, target.white), free - 1, 1, rgbOnly, 1, rgbOnlyTarget) : 0) +
+				(freeBranch <= 2 ? Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red, target.green + 1, target.blue, target.white), free - 1, 2, rgbOnly, 1, rgbOnlyTarget) : 0) +
+				(freeBranch <= 3 ? Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue + 1, target.white), free - 1, 3, rgbOnly, 1, rgbOnlyTarget) : 0) +
+				Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue, target.white + 1), free - 1, 4, rgbOnly);
+		} else if (rgbOnly > 0) {
 			// Try all possibilities of guaranteed colored socket assignments.
 			// For example, if a 3S item has desired colors of 1R1B and you're using a chromatic orb, the guaranteed non-white might be assigned red, green, or blue.
-			return (guaranteeBranch <= 1 && desired.red > 0 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red - 1, desired.green, desired.blue, desired.white), free - 1, 0, guaranteedNonWhite - 1, 1, new Colored(guaranteedDesired.red + 1, guaranteedDesired.green, guaranteedDesired.blue, guaranteedDesired.white)) : 0) +
-				(guaranteeBranch <= 2 && desired.green > 0 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green - 1, desired.blue, desired.white), free - 1, 0, guaranteedNonWhite - 1, 2, new Colored(guaranteedDesired.red, guaranteedDesired.green + 1, guaranteedDesired.blue, guaranteedDesired.white)) : 0) +
-				(guaranteeBranch <= 3 && desired.blue > 0 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue - 1, desired.white), free - 1, 0, guaranteedNonWhite - 1, 3, new Colored(guaranteedDesired.red, guaranteedDesired.green, guaranteedDesired.blue + 1, guaranteedDesired.white)) : 0);
+			return (rgbOnlyBranch <= 1 && target.red > 0 ? Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red - 1, target.green, target.blue, target.white), free, 0, rgbOnly - 1, 1, new Colored(rgbOnlyTarget.red + 1, rgbOnlyTarget.green, rgbOnlyTarget.blue, rgbOnlyTarget.white)) : 0) +
+				(rgbOnlyBranch <= 2 && target.green > 0 ? Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red, target.green - 1, target.blue, target.white), free, 0, rgbOnly - 1, 2, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green + 1, rgbOnlyTarget.blue, rgbOnlyTarget.white)) : 0) +
+				(rgbOnlyBranch <= 3 && target.blue > 0 ? Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue - 1, target.white), free, 0, rgbOnly - 1, 3, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green, rgbOnlyTarget.blue + 1, rgbOnlyTarget.white)) : 0);
 		} else {
-			// oh i'm the genie
-			return (Utils.factorial(guaranteedDesired.total()) / (Utils.factorial(guaranteedDesired.red) * Utils.factorial(guaranteedDesired.green) * Utils.factorial(guaranteedDesired.blue)))
-			    * Math.pow(undilutedChances.red, guaranteedDesired.red) * Math.pow(undilutedChances.green, guaranteedDesired.green) * Math.pow(undilutedChances.blue, guaranteedDesired.blue)
-			    * (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue) * Utils.factorial(desired.white)))
-				* Math.pow(dilutedChances.red, desired.red) * Math.pow(dilutedChances.green, desired.green) * Math.pow(dilutedChances.blue, desired.blue) * Math.pow(dilutedChances.white, desired.white);
+			var totalTarget = target.add(rgbOnlyTarget);
+
+			// Get the DISTINCT ways to generate RGB-only sockets.
+			// If you have two RGB-only sockets and R/G have equal chances, you're equally likely to get RG, GR, and RR. That means you're twice as likely to get 1R1G than 2R.
+			var repeatsPerRgbOnlyShuffle = Utils.factorial(rgbOnlyTarget.red)
+			                             * Utils.factorial(rgbOnlyTarget.green)
+			                             * Utils.factorial(rgbOnlyTarget.blue);
+			var rgbOnlyDistinctShuffles = Utils.factorial(rgbOnlyTarget.total()) / repeatsPerRgbOnlyShuffle;
+			
+			// Get the DISTINCT ways to reorder colors. For example, a 4 socket item has 24 ways to shuffle the sockets, but RRRG only has 4 distinct shuffles (GRRR, RGRR, RRGR, RRRG).
+			var shuffles = Utils.factorial(totalTarget.total());
+			var repeatsPerShuffle = Utils.factorial(totalTarget.red)
+			                      * Utils.factorial(totalTarget.green)
+								  * Utils.factorial(totalTarget.blue)
+								  * Utils.factorial(totalTarget.white);
+			var distinctShuffles = shuffles / repeatsPerShuffle;
+
+			// The chance of rolling a specific set of full-odds sockets
+			var normalSocketsChance = Math.pow(fullChances.red, target.red)
+			                        * Math.pow(fullChances.green, target.green)
+			                        * Math.pow(fullChances.blue, target.blue)
+									* Math.pow(fullChances.white, target.white);
+			
+			// Chance of rolling a specific set of RGB-only sockets (e.g. GR)
+			var rgbOnlyChance = Math.pow(rgbOnlyChances.red, rgbOnlyTarget.red)
+							  * Math.pow(rgbOnlyChances.green, rgbOnlyTarget.green)
+							  * Math.pow(rgbOnlyChances.blue, rgbOnlyTarget.blue);
+
+			return rgbOnlyDistinctShuffles * distinctShuffles * normalSocketsChance * rgbOnlyChance;
 		}
 	}
 

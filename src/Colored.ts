@@ -43,6 +43,10 @@ export class Colored {
 	public subtract(other: Colored) {
 		return new Colored(this.red - other.red, this.green - other.green, this.blue - other.blue, this.white - other.white);
 	}
+
+	public toArray(): number[] {
+		return [this.red, this.green, this.blue, this.white];
+	}
 	
 	public set(red: number, green: number, blue: number, white: number) {
 		this.red = red;
