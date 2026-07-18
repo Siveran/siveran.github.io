@@ -19,30 +19,35 @@ export class Main {
 	static blueField: HTMLTextAreaElement;
 	static table: HTMLTableSectionElement;
 	static tableWhole: HTMLTableElement;
+	static whiteChanceField: HTMLTextAreaElement;
 	
 	static main(): void {
 		// All the ways to change the socket colors
 		let recipes: Recipe[] = [];
-		recipes.push(new Recipe(0, 0, 0, 0, 1, 0, "Drop Rate"));
-		recipes.push(new Recipe(0, 0, 0, 0, 1, 0, "Chromatic"));
-		recipes.push(new Recipe(1, 0, 0, 0, 4, 2));
-		recipes.push(new Recipe(0, 1, 0, 0, 4, 2));
-		recipes.push(new Recipe(0, 0, 1, 0, 4, 2));
-		recipes.push(new Recipe(2, 0, 0, 0, 25, 3));
-		recipes.push(new Recipe(0, 2, 0, 0, 25, 3));
-		recipes.push(new Recipe(0, 0, 2, 0, 25, 3));
-		recipes.push(new Recipe(0, 1, 1, 0, 15, 4));
-		recipes.push(new Recipe(1, 0, 1, 0, 15, 4));
-		recipes.push(new Recipe(1, 1, 0, 0, 15, 4));
-		recipes.push(new Recipe(3, 0, 0, 0, 120, 6));
-		recipes.push(new Recipe(0, 3, 0, 0, 120, 6));
-		recipes.push(new Recipe(0, 0, 3, 0, 120, 6));
-		recipes.push(new Recipe(2, 1, 0, 0, 100, 7));
-		recipes.push(new Recipe(2, 0, 1, 0, 100, 7));
-		recipes.push(new Recipe(1, 2, 0, 0, 100, 7));
-		recipes.push(new Recipe(0, 2, 1, 0, 100, 7));
-		recipes.push(new Recipe(1, 0, 2, 0, 100, 7));
-		recipes.push(new Recipe(0, 1, 2, 0, 100, 7));
+		recipes.push(new Recipe(0, 0, 0, 0, 1, 0, true, "Drop Rate"));
+		recipes.push(new Recipe(0, 0, 0, 0, 1, 1, false, "Chromatic"));
+		recipes.push(new Recipe(1, 0, 0, 0, 4, 0, true));
+		recipes.push(new Recipe(0, 1, 0, 0, 4, 0, true));
+		recipes.push(new Recipe(0, 0, 1, 0, 4, 0, true));
+		recipes.push(new Recipe(2, 0, 0, 0, 25, 0, true));
+		recipes.push(new Recipe(0, 2, 0, 0, 25, 0, true));
+		recipes.push(new Recipe(0, 0, 2, 0, 25, 0, true));
+		recipes.push(new Recipe(0, 1, 1, 0, 15, 0, true));
+		recipes.push(new Recipe(1, 0, 1, 0, 15, 0, true));
+		recipes.push(new Recipe(1, 1, 0, 0, 15, 0, true));
+		recipes.push(new Recipe(3, 0, 0, 0, 120, 0, true));
+		recipes.push(new Recipe(0, 3, 0, 0, 120, 0, true));
+		recipes.push(new Recipe(0, 0, 3, 0, 120, 0, true));
+		recipes.push(new Recipe(2, 1, 0, 0, 100, 0, true));
+		recipes.push(new Recipe(2, 0, 1, 0, 100, 0, true));
+		recipes.push(new Recipe(1, 2, 0, 0, 100, 0, true));
+		recipes.push(new Recipe(0, 2, 1, 0, 100, 0, true));
+		recipes.push(new Recipe(1, 0, 2, 0, 100, 0, true));
+		recipes.push(new Recipe(0, 1, 2, 0, 100, 0, true));
+		recipes.push(new Recipe(1, 1, 1, 0, 10, 0, false, "Trichromatism"));
+		recipes.push(new Recipe(0, 0, 0, 0, 5, 2, false, "2 Non-White"));
+		recipes.push(new Recipe(0, 0, 0, 0, 20, 3, false, "3 Non-White"));
+		recipes.push(new Recipe(0, 0, 0, 0, 75, 4, false, "4 Non-White"));
 		Main.recipes = recipes;
 		
 		// All the input fields and the result table that the script touches
@@ -55,6 +60,7 @@ export class Main {
 		Main.blueField = document.getElementById("blue") as HTMLTextAreaElement;
 		Main.table = document.getElementById("resultbody") as HTMLTableSectionElement;
 		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
+		Main.whiteChanceField = document.getElementById("whiteChance") as HTMLTextAreaElement;
 		
 		// Fill in the table with sufficient blank fields
 		var i: number = 0;
@@ -137,6 +143,7 @@ export class Main {
 			row = row.nextElementSibling;
 			++j;
 		}
+
 		while (row != null) { // Hide remaining rows
 			//row.style.visibility = "collapse";
 			var td: Element = row.firstElementChild;
@@ -148,8 +155,10 @@ export class Main {
 			row.classList.remove("best");
 			row = row.nextElementSibling;
 		}
+
 		var th: Element = Main.tableWhole?.tHead?.firstElementChild?.firstElementChild;
 		i = 0;
+
 		while (th != null) {
 			var s: string = "";
 			switch (i) {
@@ -166,6 +175,7 @@ export class Main {
 			th = th.nextElementSibling;
 			++i;
 		}
+
 		// I don't know why this has to be called twice in order to support reversal.
 		SortTable.makeSortable(Main.tableWhole);
 		SortTable.makeSortable(Main.tableWhole);
@@ -183,6 +193,7 @@ export class Main {
 		var red: number = parseInt(Main.redField.value);
 		var green: number = parseInt(Main.greenField.value);
 		var blue: number = parseInt(Main.blueField.value);
+		var whiteChance: number = parseFloat(Main.whiteChanceField.value);
 		
 		if (isNaN(socks) || socks < 0) socks = 0;
 		if (isNaN(str) || str < 0) str = 0;
@@ -191,6 +202,11 @@ export class Main {
 		if (isNaN(red) || red < 0) red = 0;
 		if (isNaN(green) || green < 0) green = 0;
 		if (isNaN(blue) || blue < 0) blue = 0;
+		if (isNaN(whiteChance) || whiteChance < 0 || whiteChance >= 100) {
+			whiteChance = 0;
+		} else {
+			whiteChance /= 100;
+		}
 		
 		// Check validity, display error messages in silly ways
 		if(socks == 0) {
@@ -218,7 +234,7 @@ export class Main {
 		if (!error) {
 			var requirements = new Colored(str, dex, int, 0);
 			var desiredSockets = new Colored(red, green, blue, 0);
-			probs = Main.getProbabilities(requirements, desiredSockets, socks);
+			probs = Main.getProbabilities(requirements, desiredSockets, socks, whiteChance);
 		}
 		
 		// Push results to HTML
@@ -274,45 +290,54 @@ export class Main {
 			break;
 		}
 
-		var chances = new Colored(requirementToChance(requirements.red), requirementToChance(requirements.green), requirementToChance(requirements.blue), 0);
-		
 		// Run the on the requirements to get the actual chances
-		return Main.diluteChances(chances);
+		return new Colored(requirementToChance(requirements.red), requirementToChance(requirements.green), requirementToChance(requirements.blue), 0);
 	}
 
 	// New in 3.29: There's a high chance that sockets will be white.
-	public static diluteChances(undilutedChances: Colored): Colored {
-	    var whiteChanceField = document.getElementById("whiteChance") as HTMLTextAreaElement;
-		var whiteChance: number = parseFloat(whiteChanceField.value);
-		if (isNaN(whiteChance) || whiteChance < 0 || whiteChance >= 100) whiteChance = 0;
-		whiteChance /= 100;
+	public static diluteChances(undilutedChances: Colored, whiteChance: number): Colored {
 		var coloredChance = 1 - whiteChance;
 		return new Colored(undilutedChances.red * coloredChance, undilutedChances.green * coloredChance, undilutedChances.blue * coloredChance, whiteChance);
 	}
 	
 	// Get the probabilities for each recipe
-	private static getProbabilities(requirements: Colored, desired: Colored, totalSockets: number) : Array<Probability> {
+	private static getProbabilities(requirements: Colored, desired: Colored, totalSockets: number, whiteChance: number) : Array<Probability> {
 		var probs = new Array<Probability>();
-		var colorChances = Main.getColorChances(requirements);
+		var undilutedChances = Main.getColorChances(requirements);
+		var dilutedChances = Main.diluteChances(undilutedChances, whiteChance);
 		//Main.simulateLotsOfChromatics(colorChances, totalSockets);
 		
 		// For every recipe
 		for (let recipe of Main.recipes) {
+			var versionMatch: boolean = recipe.isLegacy == (whiteChance == 0) || (recipe.description == "Chromatic");
+			if (!versionMatch) continue;
+
 			// Recipe sanity check (you won't use 3R when you want BBBBBB)
-			if (recipe.red <= desired.red && recipe.green <= desired.green && recipe.blue <= desired.blue) {
+			if (recipe.red <= desired.red && recipe.green <= desired.green && recipe.blue <= desired.blue || (totalSockets >= 3 && recipe.description == "Trichromatism")) {
 				// Subtract the forced sockets out; we don't need to consider them.
 				// Unvoricified Desires are the sockets that haven't been guaranteed by the recipe that we still care about.
-				var unvoricifiedDesires = new Colored(desired.red - recipe.red, desired.green - recipe.green, desired.blue - recipe.blue, desired.white - recipe.white);
-				var howManySocketsDoWeNotCareAbout: number = totalSockets - desired.total();
+				var unvoricifiedDesires = desired.subtract(recipe).map((count) => Math.max(0, count));
+				var howManySocketsWeDoNotCareAbout: number = totalSockets - desired.total();
+
+				// For each color we guaranteed through Trichromatism that we didn't want, remove one from the flexible socket count.
+				if (recipe.description == "Trichromatism") {
+					if (desired.red == 0) howManySocketsWeDoNotCareAbout--;
+					if (desired.green == 0) howManySocketsWeDoNotCareAbout--;
+					if (desired.blue == 0) howManySocketsWeDoNotCareAbout--;
+					if (howManySocketsWeDoNotCareAbout < 0) continue; // We can't use Trichromatism; there's not enough flexible sockets.
+				}
 				
 				// BRUTE FORCE
-				var chance = Main.multinomial(colorChances, unvoricifiedDesires, howManySocketsDoWeNotCareAbout);
-				if (recipe.description == "Chromatic") {
+				//var chance = Main.multinomial(colorChances, unvoricifiedDesires, howManySocketsDoWeNotCareAbout);
+				var chance = Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, recipe.nonwhite);
+
+				if (recipe.description == "Chromatic" && whiteChance == 0) {
 					// CHROMATIC BONUS ROUND
-					var chanceForChromaticCollision = Main.calcChromaticBonus(colorChances, desired, totalSockets);
+					var chanceForChromaticCollision = Main.calcChromaticBonus(undilutedChances, desired, totalSockets);
 					chance /= 1 - chanceForChromaticCollision;
 				}
 				
+				// Is this recipe compatible with the version of the game we're trying to work with?
 				probs.push(new Probability(recipe.description,
 					recipe.description == "Drop Rate" ? "-" : Utils.floatToPrecisionString(recipe.cost / chance, 1)/* + " <img src=\"chromsmall.png\"\\>"*/,
 					Utils.floatToPercent(chance),
@@ -364,7 +389,7 @@ export class Main {
 			}
 			
 			// Otherwise sum it up
-			total.add(sockets);
+			total = total.add(sockets);
 			lastSockets = currentSockets;
 			i++;
 		}
@@ -393,6 +418,8 @@ export class Main {
 	}
 	
 	// Because chromatic orbs can't get the same result multiple times in a row, we find the average repeat chance.
+	// TODO: This needs to be tested in 3.29. It might not apply, anymore!
+	// If it does still apply, we need to add the nonWhiteGuaranteed logic to this function.
 	private static calcChromaticBonus(colorChances: Colored, desired: Colored, free: number, rolled: Colored = null, pos: number = 1) : number {
 		if (rolled == null) {
 			rolled = new Colored(0, 0, 0, 0);
@@ -413,6 +440,38 @@ export class Main {
 			// Note: the *2 in the exponents of the above are because we have to roll a permutation twice in a row before chromatic rerolls happen.
 		}
 	}
+
+	// For chromatic orbs (guaranteed 1 non-white socket) and crafting bench recipes (guaranteed 2-4 non-white sockets), find the chance of impossible outcomes
+	private static nonWhiteGuaranteedMultinomial(dilutedChances: Colored, undilutedChances: Colored, desired: Colored, free: number, freeBranch: number = 1, guaranteedNonWhite: number = 0, guaranteeBranch: number = 1, guaranteedDesired: Colored = new Colored(0, 0, 0, 0)) : number {
+		if (free > 0) {
+			// Try all possibilities of FINAL socket colors that include the desired socket colors.
+			// For example, if a 3S item has desired colors of 1R1B, allow 1R2B, 2R1B, 1R1B1W, and 1R1B1G.
+			// pos is the position in the recursive tree and keeps track of history.
+			// It prevents us from calculating the unordered chance for RGGB and RGBG and adding them, for example.
+			return (freeBranch <= 1 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red + 1, desired.green, desired.blue, desired.white), free - 1, 1, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
+				(freeBranch <= 2 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green + 1, desired.blue, desired.white), free - 1, 2, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
+				(freeBranch <= 3 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue + 1, desired.white), free - 1, 3, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
+				Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue, desired.white + 1), free - 1, 4, guaranteedNonWhite);
+		} else if (guaranteedNonWhite > 0) {
+			// Try all possibilities of guaranteed colored socket assignments.
+			// For example, if a 3S item has desired colors of 1R1B and you're using a chromatic orb, the guaranteed non-white might be assigned red, green, or blue.
+			return (guaranteeBranch <= 1 && desired.red > 0 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red - 1, desired.green, desired.blue, desired.white), free - 1, 0, guaranteedNonWhite - 1, 1, new Colored(guaranteedDesired.red + 1, guaranteedDesired.green, guaranteedDesired.blue, guaranteedDesired.white)) : 0) +
+				(guaranteeBranch <= 2 && desired.green > 0 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green - 1, desired.blue, desired.white), free - 1, 0, guaranteedNonWhite - 1, 2, new Colored(guaranteedDesired.red, guaranteedDesired.green + 1, guaranteedDesired.blue, guaranteedDesired.white)) : 0) +
+				(guaranteeBranch <= 3 && desired.blue > 0 ? Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue - 1, desired.white), free - 1, 0, guaranteedNonWhite - 1, 3, new Colored(guaranteedDesired.red, guaranteedDesired.green, guaranteedDesired.blue + 1, guaranteedDesired.white)) : 0);
+		} else {
+			// oh i'm the genie
+			return (Utils.factorial(guaranteedDesired.total()) / (Utils.factorial(guaranteedDesired.red) * Utils.factorial(guaranteedDesired.green) * Utils.factorial(guaranteedDesired.blue)))
+			    * Math.pow(undilutedChances.red, guaranteedDesired.red) * Math.pow(undilutedChances.green, guaranteedDesired.green) * Math.pow(undilutedChances.blue, guaranteedDesired.blue)
+			    * (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue) * Utils.factorial(desired.white)))
+				* Math.pow(dilutedChances.red, desired.red) * Math.pow(dilutedChances.green, desired.green) * Math.pow(dilutedChances.blue, desired.blue) * Math.pow(dilutedChances.white, desired.white);
+		}
+	}
+
+	// TODO: Need to test whether the crafting bench recipe non-white guarantees happen *before* or *after* rolling all the sockets.
+	// If it happens before, then the current implementation of nonWhiteGuaranteedMultinomial() is correct (I think).
+	// Otherwise, we need to add one more layer of chances. For example, in the latter case, if 4 non-white is a 2% chance, if we NATURALLY rolled a 4 non-white, then the guarantee doesn't matter.
+	// The 4-socket guarantee wouldn't improve our chances of getting 5 or 6 non-whites at all over a chromatic orb.
+	// That would be incredibly stupid, so hopefully that's not how it works!
 }
 
 if (document.readyState === "loading") {

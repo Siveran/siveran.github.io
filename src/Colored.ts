@@ -37,10 +37,11 @@ export class Colored {
 	}
 	
 	public add(other: Colored) {
-		this.red += other.red;
-		this.green += other.green;
-		this.blue += other.blue;
-		this.white += other.white;
+		return new Colored(this.red + other.red, this.green + other.green, this.blue + other.blue, this.white + other.white);
+	}
+	
+	public subtract(other: Colored) {
+		return new Colored(this.red - other.red, this.green - other.green, this.blue - other.blue, this.white - other.white);
 	}
 	
 	public set(red: number, green: number, blue: number, white: number) {

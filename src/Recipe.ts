@@ -7,16 +7,18 @@ import { Colored } from "./Colored";
 export class Recipe extends Colored {
 	public description: string;
 	public cost: number;
-	public level: number;
+	public nonwhite: number;
+	public isLegacy: boolean;
 	
-	public constructor(r: number, g: number, b: number, w: number, c: number, l: number, d: string | null = null) {
-		super(r, g, b, w);
-		this.cost = c;
-		this.level = l;
-		if (d == null) {
-			this.description = "Vorici " + (r > 0 ? r + "R" : "") +  (g > 0 ? g + "G" : "") + (b > 0 ? b + "B" : "");
+	public constructor(red: number, green: number, blue: number, white: number, cost: number, nonwhite: number, isLegacy: boolean, description: string = null) {
+		super(red, green, blue, white);
+		this.cost = cost;
+		this.nonwhite = nonwhite;
+		this.isLegacy = isLegacy;
+		if (description == null) {
+			this.description = "Vorici " + (red > 0 ? red + "R" : "") +  (green > 0 ? green + "G" : "") + (blue > 0 ? blue + "B" : "");
 		} else {
-			this.description = d;
+			this.description = description;
 		}
 	}
 }

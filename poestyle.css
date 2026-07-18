@@ -270,3 +270,9 @@ span.highlighted {
 	font-weight: bold;
 	color: #EEEEAA
 }
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
