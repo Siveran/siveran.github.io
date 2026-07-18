@@ -345,7 +345,6 @@ export class Main {
 				console.log(fullChances, rgbOnlyChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, recipe.nonwhite);
 				var chance = Main.multinomial(fullChances, rgbOnlyChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, recipe.nonwhite);
 
-				/*
 				if (recipe.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
 					var chanceForChromaticCollision = Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1);
@@ -353,7 +352,6 @@ export class Main {
 					console.log(chance);
 					chance = 1 - ((1 - chance) * (1 - chanceForChromaticCollision));
 				}
-					*/
 				
 				// Is this recipe compatible with the version of the game we're trying to work with?
 				probs.push(new Probability(recipe.description,
