@@ -20,6 +20,7 @@ export class Main {
 	static table: HTMLTableSectionElement;
 	static tableWhole: HTMLTableElement;
 	static whiteChanceField: HTMLTextAreaElement;
+	static allflameField: HTMLInputElement;
 	
 	static main(): void {
 		// All the ways to change the socket colors
@@ -44,7 +45,7 @@ export class Main {
 		recipes.push(new Recipe(0, 2, 1, 0, 100, 0, true));
 		recipes.push(new Recipe(1, 0, 2, 0, 100, 0, true));
 		recipes.push(new Recipe(0, 1, 2, 0, 100, 0, true));
-		recipes.push(new Recipe(1, 1, 1, 0, 10, 0, false, "Trichromatism"));
+		recipes.push(new Recipe(1, 1, 1, 0, 20, 0, false, "Trichromatism"));
 		recipes.push(new Recipe(0, 0, 0, 0, 5, 2, false, "2 Non-White"));
 		recipes.push(new Recipe(0, 0, 0, 0, 20, 3, false, "3 Non-White"));
 		recipes.push(new Recipe(0, 0, 0, 0, 75, 4, false, "4 Non-White"));
@@ -61,6 +62,12 @@ export class Main {
 		Main.table = document.getElementById("resultbody") as HTMLTableSectionElement;
 		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
 		Main.whiteChanceField = document.getElementById("whiteChance") as HTMLTextAreaElement;
+		Main.allflameField = document.getElementById("allflame") as HTMLInputElement;
+
+		// Toggle Allflame on automatically if it's released
+		if (Main.allflameField && Date.now() > Date.parse("2026-07-24T19:00:00.000Z")) {
+			Main.allflameField.checked = true;
+		}
 		
 		// Fill in the table with sufficient blank fields
 		var i: number = 0;
@@ -194,6 +201,7 @@ export class Main {
 		var green: number = parseInt(Main.greenField.value);
 		var blue: number = parseInt(Main.blueField.value);
 		var whiteChance: number = parseFloat(Main.whiteChanceField.value);
+		var allflame: boolean = Main.allflameField.checked;
 		
 		if (isNaN(socks) || socks < 0) socks = 0;
 		if (isNaN(str) || str < 0) str = 0;
@@ -202,7 +210,7 @@ export class Main {
 		if (isNaN(red) || red < 0) red = 0;
 		if (isNaN(green) || green < 0) green = 0;
 		if (isNaN(blue) || blue < 0) blue = 0;
-		if (isNaN(whiteChance) || whiteChance < 0 || whiteChance >= 100) {
+		if (!allflame || isNaN(whiteChance) || whiteChance < 0 || whiteChance >= 100) {
 			whiteChance = 0;
 		} else {
 			whiteChance /= 100;
@@ -234,7 +242,11 @@ export class Main {
 		if (!error) {
 			var requirements = new Colored(str, dex, int, 0);
 			var desiredSockets = new Colored(red, green, blue, 0);
-			probs = Main.getProbabilities(requirements, desiredSockets, socks, whiteChance);
+			probs = Main.getProbabilities(requirements, desiredSockets, socks, whiteChance, !allflame);
+
+			if (Main.allflameField.onclick == null) {
+				Main.allflameField.onclick = Main.calculate;
+			}
 		}
 		
 		// Push results to HTML
@@ -301,7 +313,7 @@ export class Main {
 	}
 	
 	// Get the probabilities for each recipe
-	private static getProbabilities(requirements: Colored, desired: Colored, totalSockets: number, whiteChance: number) : Array<Probability> {
+	private static getProbabilities(requirements: Colored, desired: Colored, totalSockets: number, whiteChance: number, isLegacy: boolean) : Array<Probability> {
 		var probs = new Array<Probability>();
 		var undilutedChances = Main.getColorChances(requirements);
 		var dilutedChances = Main.diluteChances(undilutedChances, whiteChance);
@@ -309,11 +321,13 @@ export class Main {
 		
 		// For every recipe
 		for (let recipe of Main.recipes) {
-			var versionMatch: boolean = recipe.isLegacy == (whiteChance == 0) || (recipe.description == "Chromatic");
+			var versionMatch: boolean = (recipe.isLegacy == isLegacy) || recipe.description == "Chromatic" || recipe.description == "Drop Rate";
 			if (!versionMatch) continue;
 
 			// Recipe sanity check (you won't use 3R when you want BBBBBB)
-			if (recipe.red <= desired.red && recipe.green <= desired.green && recipe.blue <= desired.blue || (totalSockets >= 3 && recipe.description == "Trichromatism")) {
+			if ((recipe.nonwhite <= totalSockets
+					&& recipe.red <= desired.red && recipe.green <= desired.green && recipe.blue <= desired.blue)
+					|| (totalSockets >= 3 && recipe.description == "Trichromatism")) {
 				// Subtract the forced sockets out; we don't need to consider them.
 				// Unvoricified Desires are the sockets that haven't been guaranteed by the recipe that we still care about.
 				var unvoricifiedDesires = desired.subtract(recipe).map((count) => Math.max(0, count));
@@ -331,9 +345,10 @@ export class Main {
 				//var chance = Main.multinomial(colorChances, unvoricifiedDesires, howManySocketsDoWeNotCareAbout);
 				var chance = Main.nonWhiteGuaranteedMultinomial(dilutedChances, undilutedChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, recipe.nonwhite);
 
-				if (recipe.description == "Chromatic" && whiteChance == 0) {
+				if (recipe.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
-					var chanceForChromaticCollision = Main.calcChromaticBonus(undilutedChances, desired, totalSockets);
+					var chanceForChromaticCollision = Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1);
+					console.log(chanceForChromaticCollision);
 					chance /= 1 - chanceForChromaticCollision;
 				}
 				
@@ -438,6 +453,38 @@ export class Main {
 			return (Utils.factorial(rolled.total()) / (Utils.factorial(rolled.red) * Utils.factorial(rolled.green) * Utils.factorial(rolled.blue) * Utils.factorial(rolled.white)))
 				* Math.pow(colorChances.red, rolled.red * 2) * Math.pow(colorChances.green, rolled.green * 2) * Math.pow(colorChances.blue, rolled.blue * 2) * Math.pow(colorChances.white, rolled.white * 2);
 			// Note: the *2 in the exponents of the above are because we have to roll a permutation twice in a row before chromatic rerolls happen.
+		}
+	}
+
+	private static calcChromaticBonusNonWhiteGuaranteed(dilutedChances: Colored, undilutedChances: Colored, desired: Colored, free: number, freeBranch: number = 1, guaranteedNonWhite: number = 0, guaranteeBranch: number = 1, guaranteedDesired: Colored = new Colored(0, 0, 0, 0)) : number {
+		if (free > 0) {
+			// Tell a genie to do it
+			return (freeBranch <= 1 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red + 1, desired.green, desired.blue, desired.white), free - 1, 1, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
+				(freeBranch <= 2 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green + 1, desired.blue, desired.white), free - 1, 2, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
+				(freeBranch <= 3 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue + 1, desired.white), free - 1, 3, guaranteedNonWhite, 1, guaranteedDesired) : 0) +
+				Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue, desired.white + 1), free - 1, 4, guaranteedNonWhite);
+		} else if (guaranteedNonWhite > 0) {
+			// Try all possibilities of guaranteed colored socket assignments.
+			// For example, if a 3S item has desired colors of 1R1B and you're using a chromatic orb, the guaranteed non-white might be assigned red, green, or blue.
+			return (guaranteeBranch <= 1 && desired.red > 0 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red - 1, desired.green, desired.blue, desired.white), free - 1, 0, guaranteedNonWhite - 1, 1, new Colored(guaranteedDesired.red + 1, guaranteedDesired.green, guaranteedDesired.blue, guaranteedDesired.white)) : 0) +
+				(guaranteeBranch <= 2 && desired.green > 0 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green - 1, desired.blue, desired.white), free - 1, 0, guaranteedNonWhite - 1, 2, new Colored(guaranteedDesired.red, guaranteedDesired.green + 1, guaranteedDesired.blue, guaranteedDesired.white)) : 0) +
+				(guaranteeBranch <= 3 && desired.blue > 0 ? Main.calcChromaticBonusNonWhiteGuaranteed(dilutedChances, undilutedChances, new Colored(desired.red, desired.green, desired.blue - 1, desired.white), free - 1, 0, guaranteedNonWhite - 1, 3, new Colored(guaranteedDesired.red, guaranteedDesired.green, guaranteedDesired.blue + 1, guaranteedDesired.white)) : 0);
+		} else {
+			console.log("Guaranteed Desired: " + guaranteedDesired.toString());
+			console.log("Desired: " + desired.toString());
+			console.log("Guaranteed Permutations: " + (Utils.factorial(guaranteedDesired.total()) / (Utils.factorial(guaranteedDesired.red) * Utils.factorial(guaranteedDesired.green) * Utils.factorial(guaranteedDesired.blue))));
+			console.log("Guaranteed Repeat Chance: " + Math.pow(undilutedChances.red, guaranteedDesired.red * 2) * Math.pow(undilutedChances.green, guaranteedDesired.green * 2) * Math.pow(undilutedChances.blue, guaranteedDesired.blue * 2));
+			console.log("Desired Permutations: " + (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue) * Utils.factorial(desired.white))));
+			console.log("Desired Repeat Chance: " + Math.pow(dilutedChances.red, desired.red * 2) * Math.pow(dilutedChances.green, desired.green * 2) * Math.pow(dilutedChances.blue, desired.blue * 2) * Math.pow(dilutedChances.white, desired.white * 2));
+			console.log("Shuffle Chance: " + (Utils.factorial(desired.red + guaranteedDesired.red) * Utils.factorial(desired.green + guaranteedDesired.green) * Utils.factorial(desired.blue + guaranteedDesired.blue) * Utils.factorial(desired.white + guaranteedDesired.white)) / (Utils.factorial(desired.total() + guaranteedDesired.total())));
+			console.log("--------------------------------------------------------------------------------");
+
+			// oh i'm the genie
+			return (Utils.factorial(guaranteedDesired.total()) / (Utils.factorial(guaranteedDesired.red) * Utils.factorial(guaranteedDesired.green) * Utils.factorial(guaranteedDesired.blue)))
+			    * Math.pow(undilutedChances.red, guaranteedDesired.red * 2) * Math.pow(undilutedChances.green, guaranteedDesired.green * 2) * Math.pow(undilutedChances.blue, guaranteedDesired.blue * 2)
+			    * (Utils.factorial(desired.total()) / (Utils.factorial(desired.red) * Utils.factorial(desired.green) * Utils.factorial(desired.blue) * Utils.factorial(desired.white)))
+				* Math.pow(dilutedChances.red, desired.red * 2) * Math.pow(dilutedChances.green, desired.green * 2) * Math.pow(dilutedChances.blue, desired.blue * 2) * Math.pow(dilutedChances.white, desired.white * 2)
+				* (Utils.factorial(desired.red + guaranteedDesired.red) * Utils.factorial(desired.green + guaranteedDesired.green) * Utils.factorial(desired.blue + guaranteedDesired.blue) * Utils.factorial(desired.white + guaranteedDesired.white)) / (Utils.factorial(desired.total() + guaranteedDesired.total()));
 		}
 	}
 
