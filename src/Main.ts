@@ -98,6 +98,19 @@ export class Main {
 		if (calcButton != null) {
 			calcButton.onclick = Main.calculate;
 		}
+		let inputs = document.querySelectorAll("input");
+		for (let input of inputs) {
+			console.log(input);
+			input.addEventListener("keypress", Main.calculateOnEnter);
+		}
+	}
+
+	private static calculateOnEnter(e: Event) : void {
+		const ke = e as KeyboardEvent;
+		console.log(ke.key);
+		if (ke.key === "Enter") {
+			Main.calculate();
+		}
 	}
 	
 	public static flipTableStripes() : void {

@@ -360,7 +360,7 @@ input:checked + .slider {
 }
 
 input:focus + .slider {
-  	box-shadow: 0 0 1px #0BC784;
+  	box-shadow: 0 0 10px white;
 }
 
 input:checked + .slider:before {
