@@ -350,7 +350,7 @@ export class Main {
 					var chanceForChromaticCollision = Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1);
 					console.log(chanceForChromaticCollision);
 					console.log(chance);
-					chance = 1 - ((1 - chance) * (1 - chanceForChromaticCollision));
+					chance = 1 - Math.pow(1 - chance, 1 + chanceForChromaticCollision);
 				}
 				
 				// Is this recipe compatible with the version of the game we're trying to work with?
@@ -431,7 +431,7 @@ export class Main {
 			// oh i'm the genie
 			return (Utils.factorial(rgbOnlyTarget.total()) / (Utils.factorial(rgbOnlyTarget.red) * Utils.factorial(rgbOnlyTarget.green) * Utils.factorial(rgbOnlyTarget.blue)))
 				* Math.pow(rgbOnlyChances.red, rgbOnlyTarget.red * 2) * Math.pow(rgbOnlyChances.green, rgbOnlyTarget.green * 2) * Math.pow(rgbOnlyChances.blue, rgbOnlyTarget.blue * 2)
-				* (Utils.factorial(target.total() + rgbOnlyTarget.total()) / (Utils.factorial(target.red + rgbOnlyTarget.red) * Utils.factorial(target.green + rgbOnlyTarget.green) * Utils.factorial(target.blue + rgbOnlyTarget.blue) * Utils.factorial(target.white + rgbOnlyTarget.white)))
+				* (Utils.factorial(target.total()) / (Utils.factorial(target.red) * Utils.factorial(target.green) * Utils.factorial(target.blue) * Utils.factorial(target.white)))
 				* Math.pow(fullChances.red, target.red * 2) * Math.pow(fullChances.green, target.green * 2) * Math.pow(fullChances.blue, target.blue * 2) * Math.pow(fullChances.white, target.white * 2)
 				* (Utils.factorial(target.red + rgbOnlyTarget.red) * Utils.factorial(target.green + rgbOnlyTarget.green) * Utils.factorial(target.blue + rgbOnlyTarget.blue) * Utils.factorial(target.white + rgbOnlyTarget.white)) / (Utils.factorial(target.total() + rgbOnlyTarget.total()));
 		}
