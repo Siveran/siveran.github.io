@@ -25,7 +25,7 @@ export class Main {
 	static main(): void {
 		// All the ways to change the socket colors
 		let recipes: Recipe[] = [];
-		recipes.push(new Recipe(0, 0, 0, 0, 1, 0, true, "Drop Rate"));
+		recipes.push(new Recipe(0, 0, 0, 0, null, 0, true, "Drop Rate"));
 		recipes.push(new Recipe(0, 0, 0, 0, 1, 1, false, "Chromatic"));
 		recipes.push(new Recipe(1, 0, 0, 0, 4, 0, true));
 		recipes.push(new Recipe(0, 1, 0, 0, 4, 0, true));
@@ -45,7 +45,7 @@ export class Main {
 		recipes.push(new Recipe(0, 2, 1, 0, 100, 0, true));
 		recipes.push(new Recipe(1, 0, 2, 0, 100, 0, true));
 		recipes.push(new Recipe(0, 1, 2, 0, 100, 0, true));
-		recipes.push(new Recipe(1, 1, 1, 0, 20, 0, false, "Trichromatism"));
+		recipes.push(new Recipe(1, 1, 1, 0, null, 0, false, "Trichromatism"));
 		recipes.push(new Recipe(0, 0, 0, 0, 5, 2, false, "2 Non-White"));
 		recipes.push(new Recipe(0, 0, 0, 0, 20, 3, false, "3 Non-White"));
 		recipes.push(new Recipe(0, 0, 0, 0, 75, 4, false, "4 Non-White"));
@@ -65,7 +65,7 @@ export class Main {
 		Main.allflameField = document.getElementById("allflame") as HTMLInputElement;
 
 		// Toggle Allflame on automatically if it's released
-		if (Main.allflameField && Date.now() > Date.parse("2026-07-24T19:00:00.000Z")) {
+		if (Main.allflameField && Date.now() > Date.parse("2026-07-10T19:00:00.000Z")) {
 			Main.allflameField.checked = true;
 		}
 		
@@ -316,7 +316,6 @@ export class Main {
 		var probs = new Array<Probability>();
 		var rgbOnlyChances = Main.getColorChances(requirements);
 		var fullChances = Main.diluteChances(rgbOnlyChances, whiteChance);
-		//Main.simulateLotsOfChromatics(colorChances, totalSockets);
 		
 		// For every recipe
 		for (let recipe of Main.recipes) {
@@ -340,27 +339,25 @@ export class Main {
 					if (howManySocketsWeDoNotCareAbout < 0) continue; // We can't use Trichromatism; there's not enough flexible sockets.
 				}
 				
-				// BRUTE FORCE
-				//var chance = Main.multinomial(colorChances, unvoricifiedDesires, howManySocketsDoWeNotCareAbout);
-				console.log(fullChances, rgbOnlyChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, recipe.nonwhite);
+				//Main.simulateLotsOfChromatics(fullChances, rgbOnlyChances, totalSockets);
+
+				// Calculate the chance of getting any outcome that includes the desired colors
 				var chance = Main.multinomial(fullChances, rgbOnlyChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, recipe.nonwhite);
 
 				if (recipe.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
 					var chanceForChromaticCollision = Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1);
-					console.log(chanceForChromaticCollision);
-					console.log(chance);
-					chance = 1 - Math.pow(1 - chance, 1 + chanceForChromaticCollision);
+					chance = 1 - Math.pow(1 - chance, 1 / (1 - Math.min(chanceForChromaticCollision, 1 - chance)));
 				}
 				
-				// Is this recipe compatible with the version of the game we're trying to work with?
+				// Push the recipe's information to the list, so it can later populate the table
 				probs.push(new Probability(recipe.description,
-					recipe.description == "Drop Rate" ? "-" : Utils.floatToPrecisionString(recipe.cost / chance, 1)/* + " <img src=\"chromsmall.png\"\\>"*/,
+					recipe.cost == null ? "-" : Utils.floatToPrecisionString(recipe.cost / chance, 1)/* + " <img src=\"chromsmall.png\"\\>"*/,
 					Utils.floatToPercent(chance),
 					Utils.floatToPrecisionString(1 / chance, 1),
-					recipe.description == "Drop Rate" ? "-" : "" + recipe.cost/* + " <img src=\"chromsmall.png\"\\>"*/,
+					recipe.cost == null ? "-" : "" + recipe.cost/* + " <img src=\"chromsmall.png\"\\>"*/,
 					Utils.floatToPrecisionString(Math.sqrt(Utils.clamp((1 - chance), 0, 1) / (chance * chance)), 2),
-					recipe.cost/chance));
+					recipe.cost !== null ? recipe.cost/chance : null));
 			}
 		}
 		
@@ -368,7 +365,7 @@ export class Main {
 	}
 	
 	// Test function to check to make sure chromatic bonuses are working correctly.
-	private static simulateLotsOfChromatics(colorChances: Colored, totalSockets: number) {
+	private static simulateLotsOfChromatics(fullChances: Colored, rgbOnlyChances: Colored, totalSockets: number) {
 		var lastSockets = "";
 		var sockets = new Colored(0, 0, 0, 0);
 		var total = new Colored(0, 0, 0, 0);
@@ -379,18 +376,35 @@ export class Main {
 			var j = 0;
 			var currentSockets = "";
 			sockets.set(0, 0, 0, 0);
+			var rgbOnlySocket = Math.floor(Math.random() * totalSockets);
 			while (j < totalSockets) {
 				// Roll a socket
 				var r = Math.random();
-				if (r < colorChances.red) {
-					currentSockets += "R";
-					sockets.red++;
-				} else if (r < colorChances.green + colorChances.red) {
-					currentSockets += "G";
-					sockets.green++;
+				if (j == rgbOnlySocket) {
+					if (r < rgbOnlyChances.red) {
+						currentSockets += "R";
+						sockets.red++;
+					} else if (r < rgbOnlyChances.green + rgbOnlyChances.red) {
+						currentSockets += "G";
+						sockets.green++;
+					} else {
+						currentSockets += "B";
+						sockets.blue++;
+					}
 				} else {
-					currentSockets += "B";
-					sockets.blue++;
+					if (r < fullChances.red) {
+						currentSockets += "R";
+						sockets.red++;
+					} else if (r < fullChances.green + fullChances.red) {
+						currentSockets += "G";
+						sockets.green++;
+					} else if (r < fullChances.blue + fullChances.green + fullChances.red) {
+						currentSockets += "B";
+						sockets.blue++;
+					} else {
+						currentSockets += "W";
+						sockets.white++;
+					}
 				}
 				j++;
 			}
@@ -398,9 +412,7 @@ export class Main {
 			// If that was what we got last time...
 			if (currentSockets == lastSockets) {
 				rerolls++;
-				if (rerolls > 1000000) {
-					break; // Infinite loop protection if someone is providing an unrealistically high single requirement and single socket item.
-				}
+				i++;
 				continue; // Roll again.
 			}
 			
@@ -409,6 +421,7 @@ export class Main {
 			lastSockets = currentSockets;
 			i++;
 		}
+		console.log(rerolls / 100000, Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1));
 		//trace(total.toString());
 	}
 	
@@ -416,24 +429,22 @@ export class Main {
 	// TODO: This needs to be tested in 3.29. It might not apply, anymore!
 	private static calcChromaticBonus(fullChances: Colored, rgbOnlyChances: Colored, target: Colored, free: number, freeBranch: number = 1, rgbOnly: number = 0, rgbOnlyBranch: number = 1, rgbOnlyTarget: Colored = new Colored(0, 0, 0, 0)) : number {
 		if (free > 0) {
-			// Tell a genie to do it
+			// Iterate over all possible color combinations
 			return (freeBranch <= 1 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red + 1, target.green, target.blue, target.white), free - 1, 1, rgbOnly, 1, rgbOnlyTarget) : 0) +
 				(freeBranch <= 2 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green + 1, target.blue, target.white), free - 1, 2, rgbOnly, 1, rgbOnlyTarget) : 0) +
 				(freeBranch <= 3 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue + 1, target.white), free - 1, 3, rgbOnly, 1, rgbOnlyTarget) : 0) +
-				Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue, target.white + 1), free - 1, 4, rgbOnly);
+				Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue, target.white + 1), free - 1, 4, rgbOnly, 1, rgbOnlyTarget);
 		} else if (rgbOnly > 0) {
 			// Try all possibilities of guaranteed colored socket assignments.
 			// For example, if a 3S item has desired colors of 1R1B and you're using a chromatic orb, the guaranteed non-white might be assigned red, green, or blue.
-			return (rgbOnlyBranch <= 1 && target.red > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red - 1, target.green, target.blue, target.white), 0, 0, rgbOnly - 1, 1, new Colored(rgbOnlyTarget.red + 1, rgbOnlyTarget.green, rgbOnlyTarget.blue, rgbOnlyTarget.white)) : 0) +
-				(rgbOnlyBranch <= 2 && target.green > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green - 1, target.blue, target.white), 0, 0, rgbOnly - 1, 2, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green + 1, rgbOnlyTarget.blue, rgbOnlyTarget.white)) : 0) +
-				(rgbOnlyBranch <= 3 && target.blue > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue - 1, target.white), 0, 0, rgbOnly - 1, 3, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green, rgbOnlyTarget.blue + 1, rgbOnlyTarget.white)) : 0);
+			return (rgbOnlyBranch <= 1 && target.red > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red - 1, target.green, target.blue, target.white), free, 0, rgbOnly - 1, 1, new Colored(rgbOnlyTarget.red + 1, rgbOnlyTarget.green, rgbOnlyTarget.blue, 0)) : 0) +
+				(rgbOnlyBranch <= 2 && target.green > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green - 1, target.blue, target.white), free, 0, rgbOnly - 1, 2, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green + 1, rgbOnlyTarget.blue, 0)) : 0) +
+				(rgbOnlyBranch <= 3 && target.blue > 0 ? Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue - 1, target.white), free, 0, rgbOnly - 1, 3, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green, rgbOnlyTarget.blue + 1, 0)) : 0);
 		} else {
-			// oh i'm the genie
-			return (Utils.factorial(rgbOnlyTarget.total()) / (Utils.factorial(rgbOnlyTarget.red) * Utils.factorial(rgbOnlyTarget.green) * Utils.factorial(rgbOnlyTarget.blue)))
-				* Math.pow(rgbOnlyChances.red, rgbOnlyTarget.red * 2) * Math.pow(rgbOnlyChances.green, rgbOnlyTarget.green * 2) * Math.pow(rgbOnlyChances.blue, rgbOnlyTarget.blue * 2)
-				* (Utils.factorial(target.total()) / (Utils.factorial(target.red) * Utils.factorial(target.green) * Utils.factorial(target.blue) * Utils.factorial(target.white)))
-				* Math.pow(fullChances.red, target.red * 2) * Math.pow(fullChances.green, target.green * 2) * Math.pow(fullChances.blue, target.blue * 2) * Math.pow(fullChances.white, target.white * 2)
-				* (Utils.factorial(target.red + rgbOnlyTarget.red) * Utils.factorial(target.green + rgbOnlyTarget.green) * Utils.factorial(target.blue + rgbOnlyTarget.blue) * Utils.factorial(target.white + rgbOnlyTarget.white)) / (Utils.factorial(target.total() + rgbOnlyTarget.total()));
+			let totalTarget = target.add(rgbOnlyTarget);
+			let unorderedChance = Main.getTargetChance(fullChances, rgbOnlyChances, target, rgbOnlyTarget);
+			let chanceOfEquivalentOrder = (Utils.factorial(totalTarget.red) * Utils.factorial(totalTarget.green) * Utils.factorial(totalTarget.blue) * Utils.factorial(totalTarget.white)) / (Utils.factorial(totalTarget.total()));
+			return unorderedChance * unorderedChance * chanceOfEquivalentOrder;
 		}
 	}
 
@@ -459,35 +470,40 @@ export class Main {
 				(rgbOnlyBranch <= 2 && target.green > 0 ? Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red, target.green - 1, target.blue, target.white), free, 0, rgbOnly - 1, 2, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green + 1, rgbOnlyTarget.blue, 0)) : 0) +
 				(rgbOnlyBranch <= 3 && target.blue > 0 ? Main.multinomial(fullChances, rgbOnlyChances, new Colored(target.red, target.green, target.blue - 1, target.white), free, 0, rgbOnly - 1, 3, new Colored(rgbOnlyTarget.red, rgbOnlyTarget.green, rgbOnlyTarget.blue + 1, 0)) : 0);
 		} else {
-				// Get the DISTINCT ways to generate RGB-only sockets.
-				// If you have two RGB-only sockets and R/G have equal chances, you're equally likely to get RG, GR, and RR. That means you're twice as likely to get 1R1G than 2R.
-				var repeatsPerRgbOnlyShuffle = Utils.factorial(rgbOnlyTarget.red)
-											 * Utils.factorial(rgbOnlyTarget.green)
-											 * Utils.factorial(rgbOnlyTarget.blue);
-				var rgbOnlyDistinctShuffles = Utils.factorial(rgbOnlyTarget.total()) / repeatsPerRgbOnlyShuffle;
-
-				// Get the DISTINCT ways to generate non-RGB-only sockets. For example, a 4 socket item drop has 24 ways to shuffle the sockets, but RRRG only has 4 distinct shuffles (GRRR, RGRR, RRGR, RRRG).
-				var shuffles = Utils.factorial(target.total());
-				var repeatsPerShuffle = Utils.factorial(target.red)
-									  * Utils.factorial(target.green)
-									  * Utils.factorial(target.blue)
-									  * Utils.factorial(target.white);
-				var distinctShuffles = shuffles / repeatsPerShuffle;
-
-				// The chance of rolling a specific set of full-odds sockets
-				var normalSocketsChance = Math.pow(fullChances.red, target.red)
-										* Math.pow(fullChances.green, target.green)
-										* Math.pow(fullChances.blue, target.blue)
-										* Math.pow(fullChances.white, target.white);
-							
-				// Chance of rolling a specific set of RGB-only sockets (e.g. GR)
-				var rgbOnlyChance = Math.pow(rgbOnlyChances.red, rgbOnlyTarget.red)
-								  * Math.pow(rgbOnlyChances.green, rgbOnlyTarget.green)
-								  * Math.pow(rgbOnlyChances.blue, rgbOnlyTarget.blue);
-
-				console.log(target, rgbOnlyTarget, rgbOnlyDistinctShuffles, distinctShuffles, normalSocketsChance, rgbOnlyChance);
-				return rgbOnlyDistinctShuffles * distinctShuffles * normalSocketsChance * rgbOnlyChance;
+			return Main.getTargetChance(fullChances, rgbOnlyChances, target, rgbOnlyTarget);
 		}
+	}
+
+	// Get the chance of getting a specific set of sockets where certain sockets are guaranteed to be non-white
+	private static getTargetChance(fullChances: Colored, rgbOnlyChances: Colored, target: Colored, rgbOnlyTarget: Colored) : number {
+		// Get the DISTINCT ways to generate RGB-only sockets.
+		// If you have two RGB-only sockets and R/G have equal chances, you're equally likely to get RG, GR, and RR. That means you're twice as likely to get 1R1G than 2R.
+		var repeatsPerRgbOnlyShuffle = Utils.factorial(rgbOnlyTarget.red)
+										* Utils.factorial(rgbOnlyTarget.green)
+										* Utils.factorial(rgbOnlyTarget.blue);
+		var rgbOnlyDistinctShuffles = Utils.factorial(rgbOnlyTarget.total()) / repeatsPerRgbOnlyShuffle;
+
+		// Get the DISTINCT ways to generate non-RGB-only sockets. For example, a 4 socket item drop has 24 ways to shuffle the sockets, but RRRG only has 4 distinct shuffles (GRRR, RGRR, RRGR, RRRG).
+		var shuffles = Utils.factorial(target.total());
+		var repeatsPerShuffle = Utils.factorial(target.red)
+								* Utils.factorial(target.green)
+								* Utils.factorial(target.blue)
+								* Utils.factorial(target.white);
+		var distinctShuffles = shuffles / repeatsPerShuffle;
+
+		// The chance of rolling a specific set of full-odds sockets
+		var normalSocketsChance = Math.pow(fullChances.red, target.red)
+								* Math.pow(fullChances.green, target.green)
+								* Math.pow(fullChances.blue, target.blue)
+								* Math.pow(fullChances.white, target.white);
+					
+		// Chance of rolling a specific set of RGB-only sockets (e.g. GR)
+		var rgbOnlyChance = Math.pow(rgbOnlyChances.red, rgbOnlyTarget.red)
+							* Math.pow(rgbOnlyChances.green, rgbOnlyTarget.green)
+							* Math.pow(rgbOnlyChances.blue, rgbOnlyTarget.blue);
+
+		//console.log(target, rgbOnlyTarget, rgbOnlyDistinctShuffles, distinctShuffles, normalSocketsChance, rgbOnlyChance);
+		return rgbOnlyDistinctShuffles * distinctShuffles * normalSocketsChance * rgbOnlyChance;
 	}
 
 	// TODO: Need to test whether the crafting bench recipe non-white guarantees happen *before* or *after* rolling all the sockets.

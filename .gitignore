@@ -1,4 +1,5 @@
 node_modules
 *.swp
-dist
+dist/*
+!dist/bundle.js
 src_hx
