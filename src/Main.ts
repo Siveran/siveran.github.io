@@ -65,7 +65,7 @@ export class Main {
 		Main.allflameField = document.getElementById("allflame") as HTMLInputElement;
 
 		// Toggle Allflame on automatically if it's released
-		if (Main.allflameField && Date.now() > Date.parse("2026-07-10T19:00:00.000Z")) {
+		if (Main.allflameField && Date.now() > Date.parse("2026-07-24T19:00:00.000Z")) {
 			Main.allflameField.checked = true;
 		}
 		
