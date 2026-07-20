@@ -2,6 +2,7 @@ import { Recipe } from "./Recipe";
 import { Probability } from "./Probability";
 import { Colored } from "./Colored";
 import { Utils } from "./Utils";
+import { PasteManager } from "./PasteManager";
 
 /**
  * A chromatic calculator that includes omen of trichromatism and crafting bench recipes,
@@ -21,7 +22,7 @@ export class Main {
 	static tableWhole: HTMLTableElement;
 	static whiteChanceField: HTMLInputElement;
 	static allflameField: HTMLInputElement;
-	static pasteField: HTMLTextAreaElement;
+	static pasteManager: PasteManager;
 	
 	static main(): void {
 		// All the ways to change the socket colors
@@ -64,7 +65,8 @@ export class Main {
 		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
 		Main.whiteChanceField = document.getElementById("whiteChance") as HTMLInputElement;
 		Main.allflameField = document.getElementById("allflame") as HTMLInputElement;
-		Main.pasteField = document.getElementById("paste") as HTMLTextAreaElement;
+		
+		Main.pasteManager = new PasteManager();
 
 		// Toggle Allflame on automatically if it's released
 		if (Main.allflameField && Date.now() > Date.parse("2026-07-24T19:00:00.000Z")) {
@@ -86,7 +88,6 @@ export class Main {
 				tr.appendChild(td);
 				--j;
 			}
-			//tr.style.visibility = "collapse";
 			if (i >= 4) {
 				tr.style.display = "none";
 			}
@@ -104,12 +105,7 @@ export class Main {
 		// Allow pressing enter in any field to calculate
 		let inputs = document.querySelectorAll("input");
 		for (let input of inputs) {
-			console.log(input);
 			input.addEventListener("keypress", Main.calculateOnEnter);
-		}
-
-		if (Main.pasteField != null) {
-			Main.pasteField.addEventListener("input", Main.readPaste);
 		}
 	}
 
@@ -118,47 +114,6 @@ export class Main {
 		if (ke.key === "Enter") {
 			Main.calculate();
 		}
-	}
-
-	private static readPaste(e: Event) : void {
-		var item: string = Main.pasteField.value;
-		console.log(item);
-
-		// Requirements
-		var reqs: RegExpMatchArray = /Requirements:\s*(Level:\s*(\d+)\s*)?(Str:\s*(\d+)\s*)?(Dex:\s*(\d+)\s*)?(Int:\s*(\d+))?/g.exec(item);
-		if (reqs != null) {
-			Main.strField.value = reqs[4] ?? "";
-			Main.dexField.value = reqs[6] ?? "";
-			Main.intField.value = reqs[8] ?? "";
-		}
-
-		// Sockets
-		var socketInfo: RegExpMatchArray = /Sockets: ((?:[\s-]*(?:[A-Z]))*)\s*\n/g.exec(item);
-		var socket: RegExpMatchArray;
-		var gemSocketTypes = ["R", "G", "B", "W"];
-		var count = 0;
-		var singleSocketRegex = /[\s-]*([A-Z])/g;
-		if (socketInfo != null) {
-			while (socket = singleSocketRegex.exec(socketInfo[1])) {
-				// Only count RGBW sockets. Don't count A (abyssal sockets) or any other fancy future non-gem sockets
-				if (gemSocketTypes.includes(socket[1])) {
-					count++;
-				}
-			}
-		}
-		Main.sockField.value = "" + count;
-
-		// Item Level & Quality (currently unused, add post-3.29)
-		var ilvl: RegExpMatchArray = /Item Level:\s*(\d+)/g.exec(item);
-		if (ilvl != null) {
-			console.log("ilvl: " + ilvl[1]);
-		}
-		var quality: RegExpMatchArray = /Quality:\s*\+(\d+)/g.exec(item);
-		if (quality != null) {
-			console.log("quality: " + quality[1]);
-		}
-
-		Main.pasteField.value = "";
 	}
 	
 	public static flipTableStripes() : void {
@@ -179,7 +134,7 @@ export class Main {
 		}
 	}
 	
-	private static updateTable(probabilities: Array<Probability>) : void {
+	public static updateTable(probabilities: Array<Probability>) : void {
 		var row: Element = Main.table.firstElementChild;
 		
 		// Find the index of the best option
@@ -291,7 +246,7 @@ export class Main {
 		}
 		if (str == 0 && dex == 0 && int == 0) {
 			error = true;
-			probs.push(new Probability("Error:", "Please", "fill in", "stat", "requirements.", ":("));
+			probs.push(new Probability("Error:", "Please", "provide", "stat", "requirements.", ":("));
 		}
 		if (red < 0 || green < 0 || blue < 0 || red + blue + green == 0 || red > 6 || green > 6 || blue > 6 || red + blue + green > socks) {
 			error = true;
@@ -483,7 +438,6 @@ export class Main {
 			i++;
 		}
 		console.log(rerolls / 100000, Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1));
-		//trace(total.toString());
 	}
 	
 	// Because chromatic orbs can't get the same result multiple times in a row, we find the average repeat chance.

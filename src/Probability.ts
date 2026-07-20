@@ -22,8 +22,13 @@ export class Probability {
 		this.favg = favg;
 		this.versionMatch = versionMatch;
 	}
+
+	public static error(text: string): Probability {
+		let parts = text.split(" ");
+		return new Probability("Error:", parts[0], parts[1], parts[2], parts[3], parts[4]);
+	}
 	
-	public get(part: number) : string {
+	public get(part: number): string {
 		switch (part) {
 			case 0: return this.recipeName;
 			case 1: return "<span class=\"highlighted\">" + this.avgCost + "</b>";
