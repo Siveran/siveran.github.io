@@ -13,6 +13,12 @@
 		<hr>
 		<div class="form">
 			<table class="formTable">
+				<tbody>
+					<tr class="formRow">
+						<td colspan="5">
+							<textarea id="paste" type="text" class="entry white" placeholder="Paste item data here" tabindex="0"></textarea>
+						</td>
+					</tr>
 					<tr class="formRow socks">
 						<td class="rowTitle">Total Sockets</td>
 						<td class="rowField">
@@ -23,16 +29,13 @@
 					<tr class="formRow reqs">
 						<td class="rowTitle">Requirements</td>
 						<td class="rowField">
-							<input id="str" type="number" class="entry red " placeholder="str" tabindex="2"></input>
+							<input id="str" type="number" class="entry red" placeholder="str" tabindex="2"></input>
 						</td>
 						<td class="rowField">
-							<input id="dex" type="number" class="entry green " placeholder="dex" tabindex="3"></input>
+							<input id="dex" type="number" class="entry green" placeholder="dex" tabindex="3"></input>
 						</td>
 						<td class="rowField">
-							<input id="int" type="number" class="entry blue " placeholder="int" tabindex="4"></input>
-						</td>
-						<td class="accept">
-							<button id="calcButton" class="go" tabindex="9">Calculate</button>
+							<input id="int" type="number" class="entry blue" placeholder="int" tabindex="4"></input>
 						</td>
 					</tr>
 					<tr class="formRow colors">
@@ -45,6 +48,9 @@
 						</td>
 						<td class="rowField">
 							<input id="blue" type="number" class="entry blue" placeholder="B" tabindex="7"></input>
+						</td>
+						<td class="accept">
+							<button id="calcButton" class="go" tabindex="9">Calculate</button>
 						</td>
 					</tr>
 					<tr class="formRow white allflame-only">

@@ -10,17 +10,18 @@ import { Utils } from "./Utils";
  */
 export class Main {
 	static recipes: Recipe[];
-	static sockField: HTMLTextAreaElement;
-	static strField: HTMLTextAreaElement;
-	static dexField: HTMLTextAreaElement;
-	static intField: HTMLTextAreaElement;
-	static redField: HTMLTextAreaElement;
-	static greenField: HTMLTextAreaElement;
-	static blueField: HTMLTextAreaElement;
+	static sockField: HTMLInputElement;
+	static strField: HTMLInputElement;
+	static dexField: HTMLInputElement;
+	static intField: HTMLInputElement;
+	static redField: HTMLInputElement;
+	static greenField: HTMLInputElement;
+	static blueField: HTMLInputElement;
 	static table: HTMLTableSectionElement;
 	static tableWhole: HTMLTableElement;
-	static whiteChanceField: HTMLTextAreaElement;
+	static whiteChanceField: HTMLInputElement;
 	static allflameField: HTMLInputElement;
+	static pasteField: HTMLTextAreaElement;
 	
 	static main(): void {
 		// All the ways to change the socket colors
@@ -52,17 +53,18 @@ export class Main {
 		Main.recipes = recipes;
 		
 		// All the input fields and the result table that the script touches
-		Main.sockField = document.getElementById("sockets") as HTMLTextAreaElement;
-		Main.strField = document.getElementById("str") as HTMLTextAreaElement;
-		Main.dexField = document.getElementById("dex") as HTMLTextAreaElement;
-		Main.intField = document.getElementById("int") as HTMLTextAreaElement;
-		Main.redField = document.getElementById("red") as HTMLTextAreaElement;
-		Main.greenField = document.getElementById("green") as HTMLTextAreaElement;
-		Main.blueField = document.getElementById("blue") as HTMLTextAreaElement;
+		Main.sockField = document.getElementById("sockets") as HTMLInputElement;
+		Main.strField = document.getElementById("str") as HTMLInputElement;
+		Main.dexField = document.getElementById("dex") as HTMLInputElement;
+		Main.intField = document.getElementById("int") as HTMLInputElement;
+		Main.redField = document.getElementById("red") as HTMLInputElement;
+		Main.greenField = document.getElementById("green") as HTMLInputElement;
+		Main.blueField = document.getElementById("blue") as HTMLInputElement;
 		Main.table = document.getElementById("resultbody") as HTMLTableSectionElement;
 		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
-		Main.whiteChanceField = document.getElementById("whiteChance") as HTMLTextAreaElement;
+		Main.whiteChanceField = document.getElementById("whiteChance") as HTMLInputElement;
 		Main.allflameField = document.getElementById("allflame") as HTMLInputElement;
+		Main.pasteField = document.getElementById("paste") as HTMLTextAreaElement;
 
 		// Toggle Allflame on automatically if it's released
 		if (Main.allflameField && Date.now() > Date.parse("2026-07-24T19:00:00.000Z")) {
@@ -98,19 +100,65 @@ export class Main {
 		if (calcButton != null) {
 			calcButton.onclick = Main.calculate;
 		}
+
+		// Allow pressing enter in any field to calculate
 		let inputs = document.querySelectorAll("input");
 		for (let input of inputs) {
 			console.log(input);
 			input.addEventListener("keypress", Main.calculateOnEnter);
 		}
+
+		if (Main.pasteField != null) {
+			Main.pasteField.addEventListener("input", Main.readPaste);
+		}
 	}
 
 	private static calculateOnEnter(e: Event) : void {
 		const ke = e as KeyboardEvent;
-		console.log(ke.key);
 		if (ke.key === "Enter") {
 			Main.calculate();
 		}
+	}
+
+	private static readPaste(e: Event) : void {
+		var item: string = Main.pasteField.value;
+		console.log(item);
+
+		// Requirements
+		var reqs: RegExpMatchArray = /Requirements:\s*(Level:\s*(\d+)\s*)?(Str:\s*(\d+)\s*)?(Dex:\s*(\d+)\s*)?(Int:\s*(\d+))?/g.exec(item);
+		if (reqs != null) {
+			Main.strField.value = reqs[4] ?? "";
+			Main.dexField.value = reqs[6] ?? "";
+			Main.intField.value = reqs[8] ?? "";
+		}
+
+		// Sockets
+		var socketInfo: RegExpMatchArray = /Sockets: ((?:[\s-]*(?:[A-Z]))*)\s*\n/g.exec(item);
+		var socket: RegExpMatchArray;
+		var gemSocketTypes = ["R", "G", "B", "W"];
+		var count = 0;
+		var singleSocketRegex = /[\s-]*([A-Z])/g;
+		if (socketInfo != null) {
+			while (socket = singleSocketRegex.exec(socketInfo[1])) {
+				// Only count RGBW sockets. Don't count A (abyssal sockets) or any other fancy future non-gem sockets
+				if (gemSocketTypes.includes(socket[1])) {
+					count++;
+				}
+			}
+		}
+		Main.sockField.value = "" + count;
+
+		// Item Level & Quality (currently unused, add post-3.29)
+		var ilvl: RegExpMatchArray = /Item Level:\s*(\d+)/g.exec(item);
+		if (ilvl != null) {
+			console.log("ilvl: " + ilvl[1]);
+		}
+		var quality: RegExpMatchArray = /Quality:\s*\+(\d+)/g.exec(item);
+		if (quality != null) {
+			console.log("quality: " + quality[1]);
+		}
+
+		Main.pasteField.value = "";
 	}
 	
 	public static flipTableStripes() : void {
