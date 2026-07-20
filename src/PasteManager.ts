@@ -50,6 +50,7 @@ export class PasteManager {
 
     private readPaste(e: Event): void {
         var item: string = this.pasteField.value;
+        this.pasteField.value = "";
         console.log(item);
 
         // Sockets
@@ -65,12 +66,7 @@ export class PasteManager {
                     count++;
                 }
             }
-            if (count == 0) {
-                this.flashPasteMessage("The pasted item has no gem sockets...?", "flashingError");
-                return;
-            }
         }
-        Main.sockField.value = "" + count;
 
         // Item Level & Quality (currently unused, add post-3.29)
         var ilvl: RegExpMatchArray = /Item Level:\s*(\d+)/g.exec(item);
@@ -86,9 +82,14 @@ export class PasteManager {
                 this.flashPasteMessage("Invalid item data. Ctrl+C while hovering an item in game.", "flashingError");
             }
             
-            this.pasteField.value = "";
             return;
         }
+        
+        if (count == 0) {
+            this.flashPasteMessage("The pasted item has no gem sockets...?", "flashingError");
+            return;
+        }
+        Main.sockField.value = "" + count;
 
         var quality: RegExpMatchArray = /Quality:\s*\+(\d+)/g.exec(item);
         if (quality != null) {
@@ -110,7 +111,5 @@ export class PasteManager {
 
         this.flashPasteMessage("Item pasted!", "flashingSuccess");
         Main.redField.focus();
-
-        this.pasteField.value = "";
     }
 }

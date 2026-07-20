@@ -293,6 +293,11 @@ input::-webkit-inner-spin-button {
 	font-weight: bold;
 	white-space: nowrap;
 	transition: color 0.2s ease;
+	width: 200px;
+}
+
+.slider-label-title.mirage {
+	text-align: right;
 }
 
 .slider-label:has(input:not(:checked)) .slider-label-title.mirage {
