@@ -9,8 +9,9 @@ export class PoEItem {
     public green: number;
     public blue: number;
     public white: number;
+    public firstSocketWasRGB: boolean;
     
-    constructor(strReq: number, dexReq: number, intReq: number, ilvl: number, quality: number, sockets: number, red: number, green: number, blue: number, white: number) {
+    constructor(strReq: number, dexReq: number, intReq: number, ilvl: number, quality: number, sockets: number, red: number, green: number, blue: number, white: number, firstSocketWasRGB: boolean = false) {
         this.strReq = strReq;
         this.dexReq = dexReq;
         this.intReq = intReq;
@@ -21,6 +22,7 @@ export class PoEItem {
         this.green = green;
         this.blue = blue;
         this.white = white;
+        this.firstSocketWasRGB = firstSocketWasRGB;
     }
 
     static parse(text: string): PoEItem | string {
@@ -34,6 +36,7 @@ export class PoEItem {
         let green: number = 0;
         let blue: number = 0;
         let white: number = 0;
+        let firstSocketWasRGB: boolean = true;
 
         // Item Level & Quality (currently unused, add post-3.29)
         var ilvlMatch: RegExpMatchArray = /Item Level:\s*(\d+)/g.exec(text);
@@ -72,6 +75,7 @@ export class PoEItem {
                     } else if (socket[1] == "B") {
                         blue++;
                     } else if (socket[1] == "W") {
+                        if (sockets == 1) firstSocketWasRGB = false;
                         white++;
                     }
                 }
@@ -103,6 +107,6 @@ export class PoEItem {
             intReq = 1;
         }
 
-        return new PoEItem(strReq, dexReq, intReq, ilvl, quality, sockets, red, green, blue, white);
+        return new PoEItem(strReq, dexReq, intReq, ilvl, quality, sockets, red, green, blue, white, firstSocketWasRGB);
     }
 }

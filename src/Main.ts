@@ -245,7 +245,6 @@ export class Main {
 		if (isNaN(ilvl) || ilvl < 0) ilvl = 0;
 		if (isNaN(quality) || quality < 0) quality = 0;
 		var whiteChance: number = Main.calculateWhiteChance(ilvl, quality);
-		console.log(whiteChance);
 		if (!allflame || isNaN(whiteChance) || whiteChance < 0 || whiteChance >= 100) {
 			whiteChance = 0;
 		}
@@ -293,7 +292,7 @@ export class Main {
 	}
 
 	private static calculateWhiteChance(ilvl: number, quality: number): number {
-		return 1 - (ilvl * (1 + quality/100) / 1000);
+		return 1 - 0.00375 * Math.max(ilvl - 14, 1) * (1 + Math.min(quality, 30)/100);
 	}
 	
 	// Get the chances for colors based on requirements
