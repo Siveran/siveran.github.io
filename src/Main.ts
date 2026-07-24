@@ -384,12 +384,22 @@ export class Main {
 				//Main.simulateLotsOfChromatics(fullChances, rgbOnlyChances, totalSockets);
 
 				// Calculate the chance of getting any outcome that includes the desired colors
-				var chance = Main.multinomial(fullChances, rgbOnlyChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, recipe.nonwhite);
+				var guaranteedNonWhite = recipe.nonwhite;
+				if (recipe.description == "Chromatic" && desired.total() > 1) {
+					// Chromatic orbs guarantee one non-white socket, but ONLY when they naturally roll ALL white sockets.
+					// This means that the guaranteed non-white is useless unless you're looking for exactly one non-white socket.
+					guaranteedNonWhite = 0;
+				}
+				var chance = Main.multinomial(fullChances, rgbOnlyChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, guaranteedNonWhite);
 
 				if (recipe.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
-					var chanceForChromaticCollision = Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1);
-					chance = 1 - Math.pow(1 - chance, 1 / (1 - Math.min(chanceForChromaticCollision, 1 - chance)));
+					var chanceForChromaticCollision = Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(0, 0, 0, 0), totalSockets, 1, 0);
+					var chanceNaturallyAllWhite = Math.pow(fullChances.white, totalSockets);
+					var chanceForCollisionOnGuaranteedNonWhite = chanceNaturallyAllWhite * Main.calcChromaticBonus(fullChances, rgbOnlyChances, new Colored(0, 0, 0, 0), totalSockets, 1, 1);
+					var totalCollisionChance = chanceForChromaticCollision + (1 - chanceForChromaticCollision) * chanceForCollisionOnGuaranteedNonWhite;
+					console.log(totalCollisionChance);
+					chance = 1 - Math.pow(1 - chance, 1 / (1 - Math.min(totalCollisionChance, 1 - chance)));
 				}
 				
 				// Push the recipe's information to the list, so it can later populate the table
