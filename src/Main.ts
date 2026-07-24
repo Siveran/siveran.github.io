@@ -23,6 +23,8 @@ export class Main {
 	static whiteChanceField: HTMLInputElement;
 	static allflameField: HTMLInputElement;
 	static pasteManager: PasteManager;
+	static ilvlField: HTMLInputElement;
+	static qualField: HTMLInputElement;
 	
 	static main(): void {
 		// All the ways to change the socket colors
@@ -65,6 +67,8 @@ export class Main {
 		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
 		Main.whiteChanceField = document.getElementById("whiteChance") as HTMLInputElement;
 		Main.allflameField = document.getElementById("allflame") as HTMLInputElement;
+		Main.ilvlField = document.getElementById("ilvl") as HTMLInputElement;
+		Main.qualField = document.getElementById("qual") as HTMLInputElement;
 		
 		Main.pasteManager = new PasteManager();
 

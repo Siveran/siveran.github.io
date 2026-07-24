@@ -4,13 +4,14 @@ function Reqs(strR, dexR, intR, ilevel, baseitem, rarity) {
 	this.intR = intR;
 	this.ilevel = ilevel;
 	this.baseitem = baseitem;
-	this.rarity = rarity;
+	this.quality = quality;
 }
 
-function Colors(R, G, B) {
+function Colors(R, G, B, W) {
 	this.R = R;
 	this.G = G;
 	this.B = B;
+	this.W = W;
 }
 
 function Item(r, c) {
@@ -27,12 +28,9 @@ function parseReqs(text) {
 	var baseitem = "N/A";
 	var s;
 	var i;
-	var rarity = "N/A";
+	var quality = 0;
 	for (i in spl) {
 		s = spl[i];
-		if (i == 0) {
-			rarity = s.substr(8).match(/[^\n]+/g);
-		}
 		if (i == 1) {
 			baseitem = s.match(/[^\n]+/g);
 		}
@@ -48,15 +46,18 @@ function parseReqs(text) {
 		if (s.substr(0,3) == "Int") {
 			intR = parseInt(s.match(/[0-9]+/g), 10);
 		}
-		if (s.substr(0,11) == "Itemlevel: ") {
+		if (s.substr(0,12) == "Item Level: ") {
 			ilevel = parseInt(s.match(/[0-9]+/g), 10);
 		}
+		if (s.substr(0,8) == "Quality:") {
+			quality = parseInt(s.match(/[0-9]+/g), 10);
+		}
 	}
-	if (!(strR >= 0 && dexR >= 0 && intR >= 0 && ilevel >= 10)) {
+	if (!(strR >= 0 && dexR >= 0 && intR >= 0 && ilevel >= 1 && quality >= 0)) {
 		//console.log(strR + " " + dexR + " " + intR + " " + ilevel + " " + items.length);
 		return false;
 	}
-	return new Reqs(strR, dexR, intR, ilevel, baseitem, rarity);
+	return new Reqs(strR, dexR, intR, ilevel, baseitem, rarity, quality);
 }
 
 function parseColors(text) {
@@ -64,6 +65,7 @@ function parseColors(text) {
 	var red = 0;
 	var green = 0;
 	var blue = 0;
+	var white = 0;
 	var s;
 	var i;
 	var m;
@@ -73,13 +75,14 @@ function parseColors(text) {
 			red = /R/.test(s) ? s.match(/R/g).length : 0;
 			green = /G/.test(s) ? s.match(/G/g).length : 0;
 			blue = /B/.test(s) ? s.match(/B/g).length : 0;
+			white = /B/.test(s) ? s.match(/W/g).length : 0;
 		}
 	}
-	if (!(red >= 0 && green >= 0 && blue >= 0) || red + green + blue == 0) {
+	if (!(red >= 0 && green >= 0 && blue >= 0 && white >= 0) || red + green + blue + white == 0) {
 		//console.log(red + " " + green + " " + blue + " " + items.length);
 		return false;
 	}
-	return new Colors(red, green, blue);
+	return new Colors(red, green, blue, white);
 }
 
 var items;
