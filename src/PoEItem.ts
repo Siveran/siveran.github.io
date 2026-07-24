@@ -5,8 +5,12 @@ export class PoEItem {
     public ilvl: number;
     public quality: number;
     public sockets: number;
+    public red: number;
+    public green: number;
+    public blue: number;
+    public white: number;
     
-    constructor(strReq: number, dexReq: number, intReq: number, ilvl: number, quality: number, sockets: number) {
+    constructor(strReq: number, dexReq: number, intReq: number, ilvl: number, quality: number, sockets: number, red: number, green: number, blue: number, white: number) {
         this.strReq = strReq;
         this.dexReq = dexReq;
         this.intReq = intReq;
@@ -22,6 +26,10 @@ export class PoEItem {
         let ilvl: number = 0;
         let quality: number = 0;
         let sockets: number = 0;
+        let red: number = 0;
+        let green: number = 0;
+        let blue: number = 0;
+        let white: number = 0;
 
         // Item Level & Quality (currently unused, add post-3.29)
         var ilvlMatch: RegExpMatchArray = /Item Level:\s*(\d+)/g.exec(text);
@@ -53,6 +61,15 @@ export class PoEItem {
                 // Only count RGBW sockets. Don't count A (abyssal sockets) or any other fancy future non-gem sockets
                 if (gemSocketTypes.includes(socket[1])) {
                     sockets++;
+                    if (socket[1] == "R") {
+                        red++;
+                    } else if (socket[1] == "G") {
+                        green++;
+                    } else if (socket[1] == "B") {
+                        blue++;
+                    } else if (socket[1] == "W") {
+                        white++;
+                    }
                 }
             }
         }
@@ -82,6 +99,6 @@ export class PoEItem {
             intReq = 1;
         }
 
-        return new PoEItem(strReq, dexReq, intReq, ilvl, quality, sockets);
+        return new PoEItem(strReq, dexReq, intReq, ilvl, quality, sockets, red, green, blue, white);
     }
 }

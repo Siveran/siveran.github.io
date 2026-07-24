@@ -46,8 +46,8 @@ export class PasteManager {
             this.pasteTextTimeoutFunction = null;
         }
 
-        this.pasteClassTimeout = setTimeout(this.pasteClassTimeoutFunction, 1000);
-        this.pasteTextTimeout = setTimeout(this.pasteTextTimeoutFunction, 2000);
+        this.pasteClassTimeout = window.setTimeout(this.pasteClassTimeoutFunction, 1000);
+        this.pasteTextTimeout = window.setTimeout(this.pasteTextTimeoutFunction, 2000);
     }
 
     private readPaste(e: Event): void {
