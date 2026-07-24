@@ -1,8 +1,8 @@
-import { Recipe } from "./Recipe";
-import { Probability } from "./Probability";
-import { Colored } from "./Colored";
-import { Utils } from "./Utils";
-import { PasteManager } from "./PasteManager";
+import { Recipe } from "./Recipe.js";
+import { Probability } from "./Probability.js";
+import { Colored } from "./Colored.js";
+import { Utils } from "./Utils.js";
+import { PasteManager } from "./PasteManager.js";
 
 /**
  * A chromatic calculator that includes omen of trichromatism and crafting bench recipes,
@@ -20,11 +20,14 @@ export class Main {
 	static blueField: HTMLInputElement;
 	static table: HTMLTableSectionElement;
 	static tableWhole: HTMLTableElement;
-	static whiteChanceField: HTMLInputElement;
 	static allflameField: HTMLInputElement;
 	static pasteManager: PasteManager;
 	static ilvlField: HTMLInputElement;
-	static qualField: HTMLInputElement;
+	static qualityField: HTMLInputElement;
+	static redChance: HTMLTableCellElement;
+	static greenChance: HTMLTableCellElement;
+	static blueChance: HTMLTableCellElement;
+	static whiteChance: HTMLTableCellElement;
 	
 	static main(): void {
 		// All the ways to change the socket colors
@@ -65,10 +68,14 @@ export class Main {
 		Main.blueField = document.getElementById("blue") as HTMLInputElement;
 		Main.table = document.getElementById("resultbody") as HTMLTableSectionElement;
 		Main.tableWhole = document.getElementById("result") as HTMLTableElement;
-		Main.whiteChanceField = document.getElementById("whiteChance") as HTMLInputElement;
+		//Main.whiteChanceField = document.getElementById("whiteChance") as HTMLInputElement;
 		Main.allflameField = document.getElementById("allflame") as HTMLInputElement;
 		Main.ilvlField = document.getElementById("ilvl") as HTMLInputElement;
-		Main.qualField = document.getElementById("qual") as HTMLInputElement;
+		Main.qualityField = document.getElementById("quality") as HTMLInputElement;
+		Main.redChance = document.getElementById("redChance") as HTMLTableCellElement;
+		Main.greenChance = document.getElementById("greenChance") as HTMLTableCellElement;
+		Main.blueChance = document.getElementById("blueChance") as HTMLTableCellElement;
+		Main.whiteChance = document.getElementById("whiteChance") as HTMLTableCellElement;
 		
 		Main.pasteManager = new PasteManager();
 
@@ -138,7 +145,7 @@ export class Main {
 		}
 	}
 	
-	public static updateTable(probabilities: Array<Probability>) : void {
+	public static updateTable(probabilities: Array<Probability>, chances: Colored = new Colored(0, 0, 0, 0)) : void {
 		var row: Element = Main.table.firstElementChild;
 		
 		// Find the index of the best option
@@ -202,6 +209,11 @@ export class Main {
 			++i;
 		}
 
+		Main.redChance.innerHTML = (chances.red * 100).toFixed(2) + "% R";
+		Main.greenChance.innerHTML = (chances.green * 100).toFixed(2) + "% G";
+		Main.blueChance.innerHTML = (chances.blue * 100).toFixed(2) + "% B";
+		Main.whiteChance.innerHTML = (chances.white * 100).toFixed(2) + "% W";
+
 		// I don't know why this has to be called twice in order to support reversal.
 		SortTable.makeSortable(Main.tableWhole);
 		SortTable.makeSortable(Main.tableWhole);
@@ -219,7 +231,8 @@ export class Main {
 		var red: number = parseInt(Main.redField.value);
 		var green: number = parseInt(Main.greenField.value);
 		var blue: number = parseInt(Main.blueField.value);
-		var whiteChance: number = parseFloat(Main.whiteChanceField.value);
+		var ilvl: number = parseInt(Main.ilvlField.value);
+		var quality: number = parseInt(Main.qualityField.value);
 		var allflame: boolean = Main.allflameField.checked;
 		
 		if (isNaN(socks) || socks < 0) socks = 0;
@@ -229,10 +242,12 @@ export class Main {
 		if (isNaN(red) || red < 0) red = 0;
 		if (isNaN(green) || green < 0) green = 0;
 		if (isNaN(blue) || blue < 0) blue = 0;
+		if (isNaN(ilvl) || ilvl < 0) ilvl = 0;
+		if (isNaN(quality) || quality < 0) quality = 0;
+		var whiteChance: number = Main.calculateWhiteChance(ilvl, quality);
+		console.log(whiteChance);
 		if (!allflame || isNaN(whiteChance) || whiteChance < 0 || whiteChance >= 100) {
 			whiteChance = 0;
-		} else {
-			whiteChance /= 100;
 		}
 		
 		// Check validity, display error messages in silly ways
@@ -257,19 +272,28 @@ export class Main {
 			probs.push(new Probability("Error:", "Invalid", "desired", "socket", "colors.", ":("));
 		}
 		
+		var chances: Colored = new Colored(0, 0, 0, 0);
 		// No problems! Move along and do the real work.
 		if (!error) {
 			var requirements = new Colored(str, dex, int, 0);
 			var desiredSockets = new Colored(red, green, blue, 0);
-			probs = Main.getProbabilities(requirements, desiredSockets, socks, whiteChance, !allflame);
+			chances = Main.getColorChances(requirements);
+			probs = Main.getProbabilities(chances, desiredSockets, socks, whiteChance, !allflame);
 
 			if (Main.allflameField.onclick == null) {
 				Main.allflameField.onclick = Main.calculate;
 			}
+
+			// getProbabilities needs the RGB-only chances, but we should display with white chance factored in.
+			chances = Main.diluteChances(chances, whiteChance);
 		}
 		
 		// Push results to HTML
-		Main.updateTable(probs);
+		Main.updateTable(probs, chances);
+	}
+
+	private static calculateWhiteChance(ilvl: number, quality: number): number {
+		return 1 - (ilvl * (1 + quality/100) / 1000);
 	}
 	
 	// Get the chances for colors based on requirements
@@ -332,9 +356,8 @@ export class Main {
 	}
 	
 	// Get the probabilities for each recipe
-	private static getProbabilities(requirements: Colored, desired: Colored, totalSockets: number, whiteChance: number, isLegacy: boolean) : Array<Probability> {
+	private static getProbabilities(rgbOnlyChances: Colored, desired: Colored, totalSockets: number, whiteChance: number, isLegacy: boolean) : Array<Probability> {
 		var probs = new Array<Probability>();
-		var rgbOnlyChances = Main.getColorChances(requirements);
 		var fullChances = Main.diluteChances(rgbOnlyChances, whiteChance);
 		
 		// For every recipe

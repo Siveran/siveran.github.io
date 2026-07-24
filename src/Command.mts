@@ -1,6 +1,7 @@
 import * as fs from "fs";
-import { program } from "commander";
-import { PoEItem } from "./PoEItem";
+import { PoEItem } from "./PoEItem.js";
+
+const { program } = await import("commander");
 
 program
   .name("Vorici Parser")
@@ -25,15 +26,20 @@ if (!fs.existsSync(input)) {
 const data = fs.readFileSync(input, "utf8");
 
 // ClipCube entry separator
-const itemTexts = data.split("]------------------------------------------------------------");
+const itemTexts = data.split("--------------------------------");
 
 // Parse each item
 const items: PoEItem[] = [];
 for (const itemText of itemTexts) {
+    if (itemText.length < 50) {
+      // This isn't event trying to be an item, ignore it.
+      continue;
+    }
     const item = PoEItem.parse(itemText);
     if (item instanceof PoEItem) {
         items.push(item);
     } else {
+        console.log(itemText);
         console.log(item);
     }
 }

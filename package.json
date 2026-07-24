@@ -15,6 +15,7 @@
   "main": "PoEChromaticCalc.js",
   "scripts": {
     "build": "webpack && cleancss -o poestyle.min.css poestyle.css",
+    "build:cli": "tsc -p tsconfig.cli.json",
     "css": "cleancss -o poestyle.min.css poestyle.css"
   },
   "repository": {

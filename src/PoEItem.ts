@@ -17,6 +17,10 @@ export class PoEItem {
         this.ilvl = ilvl;
         this.quality = quality;
         this.sockets = sockets;
+        this.red = red;
+        this.green = green;
+        this.blue = blue;
+        this.white = white;
     }
 
     static parse(text: string): PoEItem | string {

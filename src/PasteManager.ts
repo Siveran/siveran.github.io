@@ -1,6 +1,6 @@
-import { Main } from "./Main";
-import { PoEItem } from "./PoEItem";
-import { Probability } from "./Probability";
+import { Main } from "./Main.js";
+import { PoEItem } from "./PoEItem.js";
+import { Probability } from "./Probability.js";
 
 export class PasteManager {
 	pasteField: HTMLTextAreaElement;
@@ -62,7 +62,7 @@ export class PasteManager {
             Main.dexField.value = "" + item.dexReq;
             Main.intField.value = "" + item.intReq;
             Main.ilvlField.value = "" + item.ilvl;
-            Main.qualField.value = "" + item.quality;
+            Main.qualityField.value = "" + item.quality;
             Main.redField.focus();
             this.flashPasteMessage("Item pasted!", "flashingSuccess");
         } else {

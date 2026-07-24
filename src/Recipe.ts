@@ -1,4 +1,4 @@
-import { Colored } from "./Colored";
+import { Colored } from "./Colored.js";
 
 /**
  * Holds the information for a possible Vorici recipe.
