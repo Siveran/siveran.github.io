@@ -10,15 +10,20 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js"],
     // Add support for TypeScripts fully qualified ESM imports.
     extensionAlias: {
-     ".js": [".js", ".ts"],
-     ".cjs": [".cjs", ".cts"],
-     ".mjs": [".mjs", ".mts"]
+      ".js": [".js", ".ts"],
+      ".cjs": [".cjs", ".cts"],
+      ".mjs": [".mjs", ".mts"]
     }
   },
   module: {
     rules: [
-      // all files with a `.ts`, `.cts`, `.mts` or `.tsx` extension will be handled by `ts-loader`
-      { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }
+      {
+        test: /\.([cm]?ts|tsx)$/,
+        loader: "ts-loader",
+        options: {
+          configFile: "tsconfig.webpack.json"
+        }
+      }
     ]
   }
 };
