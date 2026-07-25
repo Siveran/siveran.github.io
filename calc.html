@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8"/>
 	<title>Vorici Chromatic Calculator</title>
-	<meta name="description" content="Path of Exile chromatic cost calculator for Vorici master crafting and raw chromatic orbs." />
+	<meta name="description" content="Path of Exile chromatic cost calculator for crafting bench recipes and raw chromatic orbs." />
 	<link rel="stylesheet" type="text/css" href="poestyle.min.css"/>
 	<link rel="icon" type="image/png" href="Chromatic_Orb.png"/>
 </head>
@@ -72,7 +72,7 @@
 			<div class="slider-label">
 				<div class="slider-label-title mirage">Mirage (Legacy)</div>
 				<label class="switch">
-					<input type="checkbox" id="allflame" tabindex="11">
+					<input type="checkbox" id="allflame" tabindex="11" checked>
 					<span class="slider round"></span>
 				</label>
 				<div class="slider-label-title allflame">Curse of the Allflame</div>
@@ -112,18 +112,10 @@
 		</div>
 		<div class="etc">
 		<hr>
-			<br>
-			<span style="font-weight:bold;">Note: The white socket chance is a complete guess until 3.29's release. It'll properly calculate off of quality and ilvl once testing is done!</span>
-			<br>Chromatic orbs guarantee at least one non-white socket AND cannot reroll the same color permutation twice, so the chromatic success chance is always higher than the drop rate.
-			<br>For mono-requirement items, on-color: 0.9 * (R + 10) / (R + 20)
-			<br>For mono-requirement items, off-color: 0.05 + 4.5 / (R + 20)
-			<br>For dual-requirement items, on-color: 0.9 * R1 / (R1 + R2)
-			<br>For dual-requirement items, off-color: 10% flat chance, regardless of requirements
-			<br>The formulas and color chances given are not guaranteed to be right (but I tried!)
-			<br>Questions, comments, or want to contribute data? Post on <a href="https://www.reddit.com/r/pathofexile/comments/1v101lm/the_vorici_chromatic_calculator_has_been_updated/" tabindex="100">Reddit</a>.
-			<br>&nbsp;&nbsp;&nbsp;<a href="https://github.com/Siveran/siveran.github.io" tabindex="101">GitHub</a> | <a href="poedata3.csv" tabindex="102">Item Data</a>
-			<br>Made by <a href="http://www.pathofexile.com/account/view-profile/Siveran" tabindex="103">Siveran</a>. Last updated July 19, 2026.
-			<br>CC0 2026
+			<br><a href="https://www.reddit.com/r/pathofexile/comments/1v101lm/the_vorici_chromatic_calculator_has_been_updated/" tabindex="100">Reddit</a> | <a href="https://github.com/Siveran/siveran.github.io" tabindex="101">GitHub</a> | <a href="poedata.csv" tabindex="102">Item Data</a>
+			<br>The results given are not guaranteed to be right (but I tried!)
+			<br>Made by <a href="http://www.pathofexile.com/account/view-profile/Siveran" tabindex="103">Siveran</a>. Last updated July 24, 2026.
+			<br>CC0 2026. This site is not affiliated with or endorsed by Grinding Gear Games.
 		</div>
 	</div>
 

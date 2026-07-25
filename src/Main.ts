@@ -270,6 +270,10 @@ export class Main {
 			error = true;
 			probs.push(new Probability("Error:", "Invalid", "desired", "socket", "colors.", ":("));
 		}
+		if ((ilvl < 1 || ilvl > 100) && allflame) {
+			error = true;
+			probs.push(new Probability("Error:", "Please", "provide", "item", "level.", ":("));
+		}
 		
 		var chances: Colored = new Colored(0, 0, 0, 0);
 		// No problems! Move along and do the real work.
