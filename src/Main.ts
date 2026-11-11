@@ -28,6 +28,7 @@ export class Main {
 	static greenChance: HTMLTableCellElement;
 	static blueChance: HTMLTableCellElement;
 	static whiteChance: HTMLTableCellElement;
+	static taintedChances: Colored = new Colored(1/3, 1/3, 1/3, 0);
 	
 	static main(): void {
 		// All the ways to change the socket colors
@@ -52,10 +53,11 @@ export class Main {
 		recipes.push(new Recipe(0, 2, 1, 0, 100, 0, true));
 		recipes.push(new Recipe(1, 0, 2, 0, 100, 0, true));
 		recipes.push(new Recipe(0, 1, 2, 0, 100, 0, true));
-		recipes.push(new Recipe(1, 1, 1, 0, null, 0, false, "Trichromatism"));
 		recipes.push(new Recipe(0, 0, 0, 0, 5, 2, false, "2 Non-White"));
 		recipes.push(new Recipe(0, 0, 0, 0, 20, 3, false, "3 Non-White"));
 		recipes.push(new Recipe(0, 0, 0, 0, 75, 4, false, "4 Non-White"));
+		recipes.push(new Recipe(1, 1, 1, 0, null, 0, false, "Trichromatism"));
+		recipes.push(new Recipe(0, 0, 0, 0, null, 1, false, "Tainted Chromatic"));
 		Main.recipes = recipes;
 		
 		// All the input fields and the result table that the script touches
@@ -389,12 +391,13 @@ export class Main {
 
 				// Calculate the chance of getting any outcome that includes the desired colors
 				var guaranteedNonWhite = recipe.nonwhite;
-				if (recipe.description == "Chromatic" && desired.total() > 1) {
+				if ((recipe.description == "Chromatic" || recipe.description == "Tainted Chromatic") && desired.total() > 1) {
 					// Chromatic orbs guarantee one non-white socket, but ONLY when they naturally roll ALL white sockets.
 					// This means that the guaranteed non-white is useless unless you're looking for exactly one non-white socket.
 					guaranteedNonWhite = 0;
 				}
-				var chance = Main.multinomial(fullChances, rgbOnlyChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, guaranteedNonWhite);
+				var recipeChances = recipe.description == "Tainted Chromatic" ? Main.diluteChances(this.taintedChances, whiteChance) : fullChances;
+				var chance = Main.multinomial(recipeChances, rgbOnlyChances, unvoricifiedDesires, howManySocketsWeDoNotCareAbout, 1, guaranteedNonWhite);
 
 				if (recipe.description == "Chromatic") {
 					// CHROMATIC BONUS ROUND
