@@ -56,8 +56,9 @@ export class Main {
 		recipes.push(new Recipe(0, 0, 0, 0, 5, 2, false, "2 Non-White"));
 		recipes.push(new Recipe(0, 0, 0, 0, 20, 3, false, "3 Non-White"));
 		recipes.push(new Recipe(0, 0, 0, 0, 75, 4, false, "4 Non-White"));
-		recipes.push(new Recipe(1, 1, 1, 0, null, 0, false, "Trichromatism"));
-		recipes.push(new Recipe(0, 0, 0, 0, null, 1, false, "Tainted Chromatic"));
+		// Note on the costs: these are extremely rough and based on Curse of the Allflame's economy
+		recipes.push(new Recipe(1, 1, 1, 0, 20, 0, false, "Trichromatism", false));
+		recipes.push(new Recipe(0, 0, 0, 0, 4, 1, false, "Tainted Chromatic", false));
 		Main.recipes = recipes;
 		
 		// All the input fields and the result table that the script touches
@@ -416,7 +417,8 @@ export class Main {
 					Utils.floatToPrecisionString(1 / chance, 1),
 					recipe.cost == null ? "-" : "" + recipe.cost/* + " <img src=\"chromsmall.png\"\\>"*/,
 					Utils.floatToPrecisionString(Math.sqrt(Utils.clamp((1 - chance), 0, 1) / (chance * chance)), 2),
-					recipe.cost !== null ? recipe.cost/chance : null));
+					recipe.cost !== null ? recipe.cost/chance : null,
+				    recipe.showCost));
 			}
 		}
 		

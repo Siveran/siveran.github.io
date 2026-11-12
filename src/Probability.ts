@@ -11,8 +11,9 @@ export class Probability {
 	public stdDev: string;
 	public favg: number;
 	public versionMatch: boolean;
+	public showCost: boolean;
 	
-	public constructor(recipeName: string, avgCost: string, chance: string, avgTries: string, recipeCost: string, stdDev: string, favg: number = 0, versionMatch: boolean = true) {
+	public constructor(recipeName: string, avgCost: string, chance: string, avgTries: string, recipeCost: string, stdDev: string, favg: number = 0, versionMatch: boolean = true, showCost: boolean = true) {
 		this.recipeName = recipeName;
 		this.avgCost = avgCost;
 		this.chance = chance;
@@ -21,6 +22,7 @@ export class Probability {
 		this.stdDev = stdDev;
 		this.favg = favg;
 		this.versionMatch = versionMatch;
+		this.showCost = showCost;
 	}
 
 	public static error(text: string): Probability {
@@ -31,7 +33,7 @@ export class Probability {
 	public get(part: number): string {
 		switch (part) {
 			case 0: return this.recipeName;
-			case 1: return "<span class=\"highlighted\">" + this.avgCost + "</b>";
+			case 1: return "<span class=\"highlighted\">" + (this.showCost ? this.avgCost : "-") + "</b>";
 			case 2: return this.chance;
 			case 3: return this.avgTries;
 			case 4: return this.recipeCost;
